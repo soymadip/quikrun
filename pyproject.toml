@@ -1,0 +1,8 @@
+[project]
+name = "run-code"
+version = "0.1.0"
+description = "Run your code without hassle"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+]
