@@ -37,12 +37,15 @@ jobs:
           repo_name=$(echo "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')
           echo "REPO_NAME=$repo_name" >> "$GITHUB_ENV"
 
-          version="${{ inputs.version }}"
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            version="${{ inputs.version }}"
+            new_tag="v${version}"
+            git tag "${new_tag}"
+          else
+            new_tag="${{ github.ref_name }}"
+            version="${new_tag#v}"
+          fi
           echo "VERSION=$version" >> "$GITHUB_ENV"
-
-          # Create the new tag so we can generate a changelog for it
-          new_tag="v${version}"
-          git tag "${new_tag}"
 
           echo "Generating changelog for ${new_tag}"
           mise trust
