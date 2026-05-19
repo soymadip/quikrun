@@ -2,8 +2,11 @@ name: Update AUR Package
 run-name: Update AUR for Release ${{ github.ref_name }}
 
 on:
-  release:
-    types: [published, created, released]
+  workflow_run:
+    workflows: ["Create GitHub Release"]
+    types:
+      - completed
+  workflow_dispatch:
 
 concurrency:
   group: update-aur
@@ -15,15 +18,13 @@ permissions:
 jobs:
   update-aur:
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
         with:
-          # Fetch all history so we can check out the release tag
           fetch-depth: 0
-
-      - name: Checkout Release Tag
-        run: git checkout ${{ github.ref }}
+          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
       - name: Get Version and Repo Metadata
         id: get_version
@@ -31,8 +32,12 @@ jobs:
           repo_name=$(echo "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')
           echo "REPO_NAME=$repo_name" >> "$GITHUB_ENV"
 
-          # The version is derived from the release tag
-          RAW_TAG="${{ github.event.release.tag_name }}"
+          # The version is derived from the workflow_run tag, or the current ref
+          if [[ -n "${{ github.event.workflow_run.head_branch }}" ]]; then
+            RAW_TAG="${{ github.event.workflow_run.head_branch }}"
+          else
+            RAW_TAG="${{ github.ref_name }}"
+          fi
           CLEAN_VERSION="${RAW_TAG#v}"
           echo "VERSION=$CLEAN_VERSION" >> "$GITHUB_ENV"
           echo "PKGREL=1" >> "$GITHUB_ENV"

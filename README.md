@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="./src/img/icon.svg" height="85">
+  <img src="https://raw.githubusercontent.com/soymadip/quikrun/main/src/img/icon.svg" height="85">
   <h1>Quikrun</h1>
   <h4>Run Your code without hassle</h4>
   <p>Quikrun is a CLI tool to run code files during learning/teaching without the hassle of manually typing the entire command in terminal</p>
