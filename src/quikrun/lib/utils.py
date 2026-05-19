@@ -87,7 +87,7 @@ def resolve_template(
 
     if isinstance(tmpl, list):
         result: list[str] = []
-        
+
         for item in tmpl:
             result.extend(resolve_template(item, platform, runners, depth + 1))
         return result
