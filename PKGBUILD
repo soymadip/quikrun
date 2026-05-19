@@ -7,8 +7,8 @@ arch=("any")
 url="https://github.com/soymadip/quikrun"
 license=("GPL3")
 depends=("python")
-makedepends=("python-build" "python-installer" "python-wheel" "python-uv-build")
-source=("$pkgname-$pkgver.tar.gz::https://github.com/soymadip/quikrun/releases/download/v$pkgver/$pkgname-$pkgver.tar.gz")
+makedepends=("python-build" "python-installer" "python-uv-build")
+source=("https://files.pythonhosted.org/packages/source/q/$pkgname/$pkgname-$pkgver.tar.gz")
 sha256sums=("SKIP")
 
 build() {

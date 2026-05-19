@@ -3,7 +3,7 @@ run-name: Update AUR for Release ${{ github.ref_name }}
 
 on:
   workflow_run:
-    workflows: ["Create GitHub Release"]
+    workflows: ["Publish to PyPI"]
     types:
       - completed
   workflow_dispatch:
@@ -105,7 +105,7 @@ jobs:
 
       - name: Publish to AUR
         if: env.SKIP_UPDATE == 'false'
-        uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
+        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
         with:
           pkgname: ${{ env.REPO_NAME }}
           pkgbuild: ./PKGBUILD
