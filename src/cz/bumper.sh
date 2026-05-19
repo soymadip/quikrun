@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/env bash
 #
 #  ____
 # | __ ) _   _ _ __ ___  _ __   ___ _ __
@@ -18,13 +18,8 @@ declare -A VERSION_FILES
 NEW_VERSION="${1:-$CZ_PRE_NEW_VERSION}"
 
 VERSION_FILES=(
-    ["package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
-    ["docs/package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
-    ["packages/cli/package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
-    ["packages/core/package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
-    ["packages/logger/package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
-    ["packages/theme/package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
-    ["packages/wizard/package.json"]='^  "version": "[^"]+" >   "version": "{{new_version}}"'
+    ["pyproject.toml"]='^version = "[^"]+" > version = "{{new_version}}"'
+    ["PKGBUILD"]='^pkgver=.* > pkgver={{new_version}};^pkgrel=.* > pkgrel=1'
 )
 
 #==================== Helpers ======================
