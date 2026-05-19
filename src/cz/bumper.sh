@@ -20,6 +20,7 @@ NEW_VERSION="${1:-$CZ_PRE_NEW_VERSION}"
 VERSION_FILES=(
     ["pyproject.toml"]='^version = "[^"]+" > version = "{{new_version}}"'
     ["PKGBUILD"]='^pkgver=.* > pkgver={{new_version}};^pkgrel=.* > pkgrel=1'
+    ["src/quikrun/__init__.py"]='^__version__ = "[^"]+" > __version__ = "{{new_version}}"'
 )
 
 #==================== Helpers ======================
