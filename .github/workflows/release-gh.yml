@@ -3,7 +3,6 @@ run-name: "Creating Release: ${{ inputs.version }}"
 
 on:
   push:
-    branches: ["main"]
     tags:
       - "v*.*.*"
 
