@@ -79,6 +79,7 @@ commitizen:
         ->'
       name: footer
       type: input
+  gpg_sign: true
   legacy_tag_formats:
   - $version
   major_version_zero: true
