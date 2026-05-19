@@ -1,0 +1,111 @@
+name: Update AUR Package
+run-name: Update AUR for Release ${{ github.ref_name }}
+
+on:
+  release:
+    types: [published, created]
+
+concurrency:
+  group: update-aur
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  update-aur:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          # Fetch all history so we can check out the release tag
+          fetch-depth: 0
+
+      - name: Checkout Release Tag
+        run: git checkout ${{ github.ref }}
+
+      - name: Get Version and Repo Metadata
+        id: get_version
+        run: |
+          repo_name=$(echo "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_NAME=$repo_name" >> "$GITHUB_ENV"
+
+          # The version is derived from the release tag
+          RAW_TAG="${{ github.event.release.tag_name }}"
+          CLEAN_VERSION="${RAW_TAG#v}"
+          echo "VERSION=$CLEAN_VERSION" >> "$GITHUB_ENV"
+          echo "PKGREL=1" >> "$GITHUB_ENV"
+
+      - name: Validate Version Format
+        run: |
+          if [[ ! "${{ env.VERSION }}" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "ERROR: Invalid version format detected: '${{ env.VERSION }}'"
+            echo "Version must be numeric (e.g., 1.2.3). Stopping workflow."
+            exit 1
+          fi
+
+      - name: Check Current AUR Version
+        id: check_aur
+        run: |
+          AUR_FULL_VERSION=$(curl -s "https://aur.archlinux.org/rpc/v5/info/${{ env.REPO_NAME }}" | \
+            jq -r '.results[0].Version // empty')
+
+          REPO_FULL_VERSION="${{ env.VERSION }}-${{ env.PKGREL }}"
+
+          echo "Repo version target: $REPO_FULL_VERSION"
+          echo "AUR version current: $AUR_FULL_VERSION"
+
+          if [ -z "$AUR_FULL_VERSION" ] || [ "$AUR_FULL_VERSION" == "null" ]; then
+            echo "Package not in AUR yet. Proceeding."
+            echo "SKIP_UPDATE=false" >> "$GITHUB_ENV"
+          elif [ "$AUR_FULL_VERSION" == "$REPO_FULL_VERSION" ]; then
+            echo "AUR is already up to date. Skipping."
+            echo "SKIP_UPDATE=true" >> "$GITHUB_ENV"
+          else
+            # Verify if local is actually newer to prevent accidental downgrades
+            if echo -e "${AUR_FULL_VERSION}\n${REPO_FULL_VERSION}" | sort -V -C 2>/dev/null; then
+              echo "AUR version is older. Proceeding with update."
+              echo "SKIP_UPDATE=false" >> "$GITHUB_ENV"
+            else
+              echo "Warning: AUR version is newer than Local. Skipping to prevent downgrade."
+              echo "SKIP_UPDATE=true" >> "$GITHUB_ENV"
+            fi
+          fi
+
+      - name: Update PKGBUILD and Checksums
+        if: env.SKIP_UPDATE == 'false'
+        run: |
+          docker run --rm \
+            -v "$PWD:/src" \
+            -w /src \
+            -e VERSION="${{ env.VERSION }}" \
+            archlinux:base-devel sh -c '
+              pacman -Sy --noconfirm pacman-contrib git
+              useradd -m builduser
+              chown -R builduser:builduser .
+
+              # Update PKGBUILD with the release version
+              echo "Updating PKGBUILD to v$VERSION"
+              sed -i "s/^pkgver=.*$/pkgver=$VERSION/" PKGBUILD
+              sed -i "s/^pkgrel=.*$/pkgrel=1/" PKGBUILD
+
+              # Generate new checksums and .SRCINFO as builduser
+              su builduser -c "updpkgsums"
+              su builduser -c "makepkg --printsrcinfo > .SRCINFO"
+
+              # Fix permissions for the GitHub runner user (UID 1001)
+              chown -R 1001:121 .
+            '
+
+      - name: Publish to AUR
+        if: env.SKIP_UPDATE == 'false'
+        uses: KSXGitHub/github-actions-deploy-aur@v2.2.5
+        with:
+          pkgname: ${{ env.REPO_NAME }}
+          pkgbuild: ./PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: "Update to ${{ env.VERSION }}-${{ env.PKGREL }}"
+          ssh_keyscan_types: rsa,ecdsa,ed25519

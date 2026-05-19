@@ -1,0 +1,80 @@
+name: Create GitHub Release
+run-name: "Creating Release: ${{ inputs.version }}"
+
+on:
+  push:
+    branches: ["main"]
+    tags:
+      - "v*.*.*"
+
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "The version to release (e.g., 1.2.3)"
+        required: true
+
+concurrency:
+  group: gh-release
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - uses: jdx/mise-action@v3
+
+      - name: Get Repo name, Version & Changelog
+        id: get_version_and_changelog
+        run: |
+          repo_name=$(echo "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')
+          echo "REPO_NAME=$repo_name" >> "$GITHUB_ENV"
+
+          version="${{ inputs.version }}"
+          echo "VERSION=$version" >> "$GITHUB_ENV"
+
+          # Create the new tag so we can generate a changelog for it
+          new_tag="v${version}"
+          git tag "${new_tag}"
+
+          echo "Generating changelog for ${new_tag}"
+          mise trust
+          changelog=$(mise r changelog -- "${new_tag}..${new_tag}" --dry-run | sed -n '/^###/,$p')
+
+          {
+            echo "CHANGELOG<<EOF"
+            if [[ -n "$changelog" ]]; then
+              echo "## What's New?"
+              echo "$changelog"
+            else
+              echo "No changes to note for this release."
+            fi
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+
+          if [[ "$version" == 0* ]]; then
+            echo "IS_PRERELEASE=true" >> "$GITHUB_ENV"
+          else
+            echo "IS_PRERELEASE=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: Build distributions
+        run: uv build
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: v${{ env.VERSION }}
+          name: v${{ env.VERSION }}
+          body: ${{ env.CHANGELOG }}
+          prerelease: ${{ env.IS_PRERELEASE == 'true' }}
+          files: dist/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

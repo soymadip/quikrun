@@ -1,2 +1,25 @@
 [tools]
+"pipx:commitizen" = "latest"
+ruff = "latest"
 uv = "latest"
+
+[env]
+CZ_CONFIG = 'src/cz/cz.yaml'
+
+[tasks]
+bump = "cz --config $CZ_CONFIG  bump"
+commit = "cz --config $CZ_CONFIG commit"
+changelog = "cz --config $CZ_CONFIG changelog"
+
+[tasks.format]
+description = "Format code layout using Ruff (Prettier style)"
+run = "ruff format"
+
+[tasks.lint]
+description = "Lint and auto-fix code quality issues using Ruff"
+run = "ruff check --fix"
+
+# The "alias" that runs everything formatting and lint
+[tasks.fmt]
+description = "Fix lint errors and format all files"
+run = [{ task = "lint" }, { task = "format" }]
