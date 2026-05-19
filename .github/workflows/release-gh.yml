@@ -1,5 +1,5 @@
 name: Create GitHub Release
-run-name: "Creating Release: ${{ inputs.version }}"
+run-name: "Create GitHub Release: ${{ inputs.version && format('v{0}', inputs.version) || github.ref_name }}"
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - uses: jdx/mise-action@v3
+      - uses: jdx/mise-action@v4
 
       - name: Get Repo name, Version & Changelog
         id: get_version_and_changelog

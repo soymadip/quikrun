@@ -1,8 +1,10 @@
 name: Publish to AUR
-run-name: "Publish AUR Package: v${{ github.ref_name }}"
+run-name: "Publish AUR Package: ${{ github.ref_name }}"
 
 on:
   push:
+    tags:
+      - "v*.*.*"
     branches:
       - main
     paths:
@@ -19,6 +21,10 @@ permissions:
 jobs:
   update-aur:
     runs-on: ubuntu-latest
+    if: |
+      github.event_name == 'workflow_dispatch' ||
+      (github.event_name == 'push' && github.ref_type == 'tag') ||
+      (github.event_name == 'push' && github.ref_type == 'branch' && !startsWith(github.event.head_commit.message, 'chore(release):'))
     environment:
       name: aur
       url:  "https://aur.archlinux.org/packages/${{ github.event.repository.name }}"
@@ -77,6 +83,8 @@ jobs:
 
           # Fallback / Double-check: Poll the public PyPI registry to ensure package is fully indexable
           echo "Verifying availability on PyPI registry..."
+          sleep 5
+          
           for i in {1..30}; do
             CURRENT_VERSION=$(curl -s "https://pypi.org/pypi/${{ env.REPO_NAME }}/json" | jq -r '.info.version // empty')
 
