@@ -19,10 +19,11 @@ def _tty() -> bool:
     return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
 
 
-def _c(text: str, *codes: str) -> str:
+def fmt(text: str, *codes: str) -> str:
     """Wrap text in ANSI codes if stdout is a TTY."""
     if not _tty():
         return text
+
     return "".join(codes) + text + _RESET
 
 
@@ -57,16 +58,16 @@ def footer(elapsed: float, exit_code: int) -> None:
 
 
 def info(msg: str) -> None:
-    print(_c(":: ", _CYAN) + msg)
+    print(fmt(":: ", _CYAN) + msg)
 
 
 def success(msg: str) -> None:
-    print(_c("✓ ", _GREEN) + msg)
+    print(fmt("✓ ", _GREEN) + msg)
 
 
 def warn(msg: str) -> None:
-    print(_c("⚠ ", _YELLOW) + msg, file=sys.stderr)
+    print(fmt("⚠ ", _YELLOW) + msg, file=sys.stderr)
 
 
 def error(msg: str) -> None:
-    print(_c("✗ ", _RED) + msg, file=sys.stderr)
+    print(fmt("✗ ", _RED) + msg, file=sys.stderr)
