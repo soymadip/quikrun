@@ -3,10 +3,9 @@ name = "quikrun"
 version = "2.0.0"
 description = "Run your code without hassle"
 readme = "README.md"
-authors = [
-    { name = "Soumadip Das", email = "soumadip@zohomail.in" }
-]
-license = { file = "LICENSE" }
+license = "GPL-3.0-or-later"
+license-files = ["LICENSE"]
+authors = [{ name = "Soumadip Das", email = "soumadip@zohomail.in" }]
 
 requires-python = ">=3.13"
 dependencies = []
@@ -16,7 +15,7 @@ Homepage = "https://gitlab.com/soymadip/quikrun"
 Repository = "https://gitlab.com/soymadip/quikrun"
 
 [project.scripts]
-quikrun = "quikrun.main:main" # the command quikrun should call the main function inside quikrun/main.py . The src/ part is invisible to Python — uv/pip adds src/ to the Python path automatically during install, so Python sees quikrun directly, not src.quikrun
+quikrun = "quikrun.main:main"  # the command quikrun should call the main function inside quikrun/main.py . The src/ part is invisible to Python — uv/pip adds src/ to the Python path automatically during install, so Python sees quikrun directly, not src.quikrun
 
 [build-system]
 requires = ["uv_build>=0.11.14,<0.12.0"]
