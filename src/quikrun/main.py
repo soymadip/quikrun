@@ -146,11 +146,27 @@ def main() -> None:
 
     file_q: str = shlex.quote(str(file.resolve()))  # absolute — for execution
     file_rel_q: str = shlex.quote(str(file))  # relative — for display only
+    file_dir_q: str = shlex.quote(str(file.parent.resolve()))
+    file_dir_rel_q: str = shlex.quote(str(file.parent))
+    file_name_q: str = shlex.quote(file.name)
+    file_stem_q: str = shlex.quote(file.stem)
     out_q: str = shlex.quote(str(get_out_path(file, temp_dir=cfg.get("temp_dir"))))
 
     # Fill in templates
-    cmd: str = template.format(file=file_q, out=out_q)
-    display_cmd: str = template.format(file=file_rel_q, out=out_q)
+    cmd: str = template.format(
+        file=file_q,
+        out=out_q,
+        file_dir=file_dir_q,
+        file_name=file_name_q,
+        file_stem=file_stem_q,
+    )
+    display_cmd: str = template.format(
+        file=file_rel_q,
+        out=out_q,
+        file_dir=file_dir_rel_q,
+        file_name=file_name_q,
+        file_stem=file_stem_q,
+    )
 
     if extra_args:
         cmd += " " + shlex.join(extra_args)
