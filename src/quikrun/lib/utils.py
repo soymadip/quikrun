@@ -4,7 +4,6 @@ import hashlib
 import os
 import subprocess
 import sys
-import tempfile
 import time
 from pathlib import Path
 from typing import Any
@@ -12,15 +11,22 @@ from typing import Any
 from . import logger
 
 
-def get_out_path(file: Path) -> Path:
-    """Deterministic, collision-free temp path for compiled binaries.
+def get_out_path(file: Path, temp_dir: str | None = None) -> Path:
+    """Get the output path for the compiled binary.
 
-    Based on a hash of the file's absolute path, so parallel runs of
-    different files never clobber each other.
+    If temp_dir is provided, compiles to a hashed name inside that directory.
+    Otherwise, compiles to a local '.quikrun' directory next to the source file.
     """
-    digest = hashlib.sha1(str(file.resolve()).encode()).hexdigest()[:10]
-
-    out_path = Path(tempfile.gettempdir()) / f"quikrun_{digest}"
+    if temp_dir:
+        expanded = os.path.expandvars(temp_dir)
+        custom_dir = Path(expanded).expanduser().resolve()
+        custom_dir.mkdir(parents=True, exist_ok=True)
+        digest = hashlib.sha1(str(file.resolve()).encode()).hexdigest()[:10]
+        out_path = custom_dir / f"quikrun_{digest}"
+    else:
+        out_dir = file.parent / ".quikrun"
+        out_dir.mkdir(parents=True, exist_ok=True)
+        out_path = out_dir / file.stem
 
     if os.name == "nt":
         out_path = out_path.with_suffix(".exe")

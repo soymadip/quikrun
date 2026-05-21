@@ -53,6 +53,7 @@ def load() -> dict[str, Any]:
         "clear_terminal": True,
         "show_time_took": True,
         "show_command": True,
+        "temp_dir": None,
         "runners": RUNNERS.copy(),
     }
 
@@ -61,8 +62,8 @@ def load() -> dict[str, Any]:
         xdg_config_home() / "quikrun" / "config.toml"
     )
 
-    for key in ["shell", "clear_terminal", "show_time_took", "show_command"]:
-        if key in user_conf:
+    for key in default_conf:
+        if key != "runners" and key in user_conf:
             default_conf[key] = user_conf[key]
 
     if "runners" in user_conf:
@@ -78,8 +79,8 @@ def load() -> dict[str, Any]:
         pyproject: dict[str, Any] = _read_toml(cwd / "pyproject.toml")
         project_conf = pyproject.get("tool", {}).get("quikrun", {})
 
-    for key in ["shell", "clear_terminal", "show_time_took", "show_command"]:
-        if key in project_conf:
+    for key in default_conf:
+        if key != "runners" and key in project_conf:
             default_conf[key] = project_conf[key]
 
     if "runners" in project_conf:
