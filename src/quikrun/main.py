@@ -47,7 +47,7 @@ def main() -> None:
     extra_args: list[str]
     args, extra_args = parser.parse_known_args()
 
-    file: Path = Path(args.file)
+    file: Path = Path(args.file.strip())
 
     # ---------------- Validation ---------------
 
