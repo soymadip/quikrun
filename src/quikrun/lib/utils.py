@@ -18,7 +18,7 @@ def get_out_path(file: Path, temp_dir: str | None = None) -> Path:
     Otherwise, compiles to a local '.quikrun' directory next to the source file.
     """
     file = file.resolve()
-    
+
     if temp_dir:
         expanded = os.path.expandvars(temp_dir)
         custom_dir = Path(expanded).expanduser().resolve()
@@ -99,7 +99,11 @@ def run_cmd(
 
 
 def resolve_template(
-    tmpl: Any, shell_family: str, platform_key: str, command_templates: dict[str, Any], depth: int = 0
+    tmpl: Any,
+    shell_family: str,
+    platform_key: str,
+    command_templates: dict[str, Any],
+    depth: int = 0,
 ) -> list[str]:
     """Recursively flatten aliases, platform dicts, and arrays into a flat list of commands."""
 
@@ -113,10 +117,16 @@ def resolve_template(
         if tmpl.startswith("@"):
             alias_key = tmpl[1:]
             if alias_key not in command_templates:
-                logger.error(f"Alias error: '{alias_key}' is not a valid command template.")
+                logger.error(
+                    f"Alias error: '{alias_key}' is not a valid command template."
+                )
                 sys.exit(1)
             return resolve_template(
-                command_templates[alias_key], shell_family, platform_key, command_templates, depth + 1
+                command_templates[alias_key],
+                shell_family,
+                platform_key,
+                command_templates,
+                depth + 1,
             )
         return [tmpl]
 
@@ -129,7 +139,7 @@ def resolve_template(
                 f"Config error: Command template is missing a configuration for shell family '{shell_family}'."
             )
             sys.exit(1)
-            
+
         # 2. Resolve OS Platform (if nested dict)
         if isinstance(val, dict):
             if platform_key in val:
@@ -140,14 +150,18 @@ def resolve_template(
                 )
                 sys.exit(1)
 
-        return resolve_template(val, shell_family, platform_key, command_templates, depth + 1)
+        return resolve_template(
+            val, shell_family, platform_key, command_templates, depth + 1
+        )
 
     if isinstance(tmpl, list):
         result: list[str] = []
 
         for item in tmpl:
             result.extend(
-                resolve_template(item, shell_family, platform_key, command_templates, depth + 1)
+                resolve_template(
+                    item, shell_family, platform_key, command_templates, depth + 1
+                )
             )
         return result
 

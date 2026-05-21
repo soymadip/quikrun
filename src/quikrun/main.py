@@ -66,7 +66,7 @@ def main() -> None:
 
     shell_name = "sh"
     platform_key = "linux"
-    
+
     if sys.platform.startswith("win"):
         platform_key = "win"
     elif sys.platform == "darwin":
@@ -143,7 +143,9 @@ def main() -> None:
     raw_template: Any = cmd_templates[extension]
 
     # Recursively resolve and flatten all aliases, dictionaries, and arrays
-    flattened_cmds: list[str] = resolve_template(raw_template, shell_family, platform_key, cmd_templates)
+    flattened_cmds: list[str] = resolve_template(
+        raw_template, shell_family, platform_key, cmd_templates
+    )
 
     if not flattened_cmds:
         logger.error(f"Invalid configuration for extension '.{extension}'.")
@@ -196,7 +198,7 @@ def main() -> None:
         elif shell_family == "pwsh":
             cmd = f"cd '{file_dir_q}'; if ($?) {{ {cmd} }}"
             display_cmd = f"cd '{file_dir_rel_q}'; if ($?) {{ {display_cmd} }}"
-        else: # posix
+        else:  # posix
             cmd = f"cd {file_dir_q} && {cmd}"
             display_cmd = f"cd {file_dir_rel_q} && {display_cmd}"
 
