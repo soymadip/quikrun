@@ -150,7 +150,8 @@ def main() -> None:
     file_dir_rel_q: str = shlex.quote(str(file.parent))
     file_name_q: str = shlex.quote(file.name)
     file_stem_q: str = shlex.quote(file.stem)
-    out_q: str = shlex.quote(str(get_out_path(file, temp_dir=cfg.get("temp_dir"))))
+    out_path: Path = get_out_path(file, temp_dir=cfg.get("temp_dir"))
+    out_q: str = shlex.quote(str(out_path))
 
     # Fill in templates
     cmd: str = template.format(
@@ -175,17 +176,34 @@ def main() -> None:
     if cfg.get("clear_terminal"):
         os.system("cls" if os.name == "nt" else "clear")
 
-    sys.exit(
-        run_cmd(
-            cmd,
-            shell=resolved_shell,
-            show_time=bool(cfg.get("show_time_took")),
-            show_command=bool(cfg.get("show_command")),
-            display_cmd=display_cmd,
-            cwd=str(file.parent.resolve()) if cfg.get("cd_to_file_dir") else None,
-            show_shell=bool(cfg.get("show_shell")),
-        )
+    exit_code = run_cmd(
+        cmd,
+        shell=resolved_shell,
+        show_time=bool(cfg.get("show_time_took")),
+        show_command=bool(cfg.get("show_command")),
+        display_cmd=display_cmd,
+        cwd=str(file.parent.resolve()) if cfg.get("cd_to_file_dir") else None,
+        show_shell=bool(cfg.get("show_shell")),
     )
+
+    # Clean up temporary compiled binary if configured to do so
+    if not cfg.get("keep_artifacts"):
+        try:
+            if out_path.exists():
+                if out_path.is_file():
+                    out_path.unlink()
+                elif out_path.is_dir():
+                    shutil.rmtree(out_path)
+
+            # Remove parent directory if it is empty
+            parent_dir: Path = out_path.parent
+            if parent_dir.exists() and parent_dir.is_dir():
+                if not any(parent_dir.iterdir()):
+                    parent_dir.rmdir()
+        except Exception:
+            pass
+
+    sys.exit(exit_code)
 
 
 if __name__ == "__main__":

@@ -56,6 +56,7 @@ def load() -> dict[str, Any]:
         "show_shell": True,
         "temp_dir": None,
         "cd_to_file_dir": False,
+        "keep_artifacts": False,
         "runners": RUNNERS.copy(),
     }
 
