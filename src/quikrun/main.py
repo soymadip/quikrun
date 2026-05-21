@@ -182,6 +182,7 @@ def main() -> None:
             show_time=bool(cfg.get("show_time_took")),
             show_command=bool(cfg.get("show_command")),
             display_cmd=display_cmd,
+            cwd=str(file.parent.resolve()) if cfg.get("cd_to_file_dir") else None,
         )
     )
 

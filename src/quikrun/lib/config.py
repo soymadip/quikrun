@@ -54,6 +54,7 @@ def load() -> dict[str, Any]:
         "show_time_took": True,
         "show_command": True,
         "temp_dir": None,
+        "cd_to_file_dir": False,
         "runners": RUNNERS.copy(),
     }
 
