@@ -30,7 +30,13 @@ def fmt(text: str, *codes: str) -> str:
 # ---------------- Public API ---------------
 
 
-def footer(elapsed: float, exit_code: int, cmd: str | None = None, show_time: bool = True, is_shebang: bool = False) -> None:
+def footer(
+    elapsed: float,
+    exit_code: int,
+    cmd: str | None = None,
+    show_time: bool = True,
+    is_shebang: bool = False,
+) -> None:
     """Print the execution footer divider and exit status."""
     if _tty():
         print(fmt("-" * 43, _DIM))

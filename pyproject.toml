@@ -1,6 +1,6 @@
 [project]
 name = "quikrun"
-version = "1.0.1"
+version = "1.1.0"
 description = "Run your code without hassle"
 readme = "README.md"
 authors = [

@@ -145,7 +145,6 @@ def main() -> None:
     if not template:
         template = flattened_cmds[-1]
 
-
     file_q: str = shlex.quote(str(file.resolve()))
     out_q: str = shlex.quote(str(get_out_path(file)))
     cmd: str = template.format(file=file_q, out=out_q)
