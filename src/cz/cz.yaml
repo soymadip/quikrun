@@ -82,7 +82,6 @@ commitizen:
   gpg_sign: true
   legacy_tag_formats:
   - $version
-  major_version_zero: true
   name: cz_customize
   post_bump_hooks:
   - git push origin $(git branch --show-current) --follow-tags
