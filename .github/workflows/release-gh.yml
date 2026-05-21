@@ -22,6 +22,10 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
+    env:
+      VERSION: ""
+      CHANGELOG: ""
+      IS_PRERELEASE: ""
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -77,6 +81,9 @@ jobs:
           name: v${{ env.VERSION }}
           body: ${{ env.CHANGELOG }}
           prerelease: ${{ env.IS_PRERELEASE == 'true' }}
-          files: dist/*
+          files: |
+            dist/*.tar.gz
+            dist/*.whl
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
