@@ -146,7 +146,7 @@ def main() -> None:
 
     file_q: str = shlex.quote(str(file.resolve()))  # absolute — for execution
     file_rel_q: str = shlex.quote(str(file))  # relative — for display only
-    out_q: str = shlex.quote(str(get_out_path(file)))
+    out_q: str = shlex.quote(str(get_out_path(file, temp_dir=cfg.get("temp_dir"))))
 
     # Fill in templates
     cmd: str = template.format(file=file_q, out=out_q)
