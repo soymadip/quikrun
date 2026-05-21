@@ -62,26 +62,42 @@ def main() -> None:
     # ---------------- Load Configuration ---------------
 
     cfg: dict[str, Any] = config.load()
-    runners: dict[str, Any] = cfg.get("runners", {})
+    cmd_templates: dict[str, Any] = cfg.get("cmds", {})
 
-    platform_name: str = "win" if os.name == "nt" else "posix"
+    shell_name = "sh"
+    platform_key = "linux"
+    
+    if sys.platform.startswith("win"):
+        platform_key = "win"
+    elif sys.platform == "darwin":
+        platform_key = "darwin"
 
-    # Resolve and validate custom shell
-    shell_cmd: dict[str, str] | None = cfg.get("shell")
+    # Resolve custom shell
+    shell_cmd = cfg.get("shell")
     resolved_shell: str | None = None
 
     if shell_cmd is not None:
-        if (
-            not isinstance(shell_cmd, dict)  # isinstance: return true if a dict
-            or "posix" not in shell_cmd
-            or "win" not in shell_cmd
-        ):
-            logger.error(
-                "Config error: 'shell' must be a dict specifying both 'posix' and 'win' keys."
-            )
-            sys.exit(1)
+        if isinstance(shell_cmd, dict):
+            resolved_shell = shell_cmd.get(platform_key, next(iter(shell_cmd.values())))
+        else:
+            resolved_shell = str(shell_cmd)
 
-        resolved_shell = shell_cmd[platform_name]
+    # Determine shell family
+    if resolved_shell:
+        shell_path = shutil.which(resolved_shell) or resolved_shell
+        shell_name = os.path.basename(shell_path).lower()
+    elif os.name == "nt":
+        shell_path = os.environ.get("COMSPEC", "cmd.exe")
+        shell_name = os.path.basename(shell_path).lower()
+
+    if any(s in shell_name for s in ["bash", "zsh", "dash", "ash", "sh"]):
+        shell_family = "posix"
+    elif any(s in shell_name for s in ["cmd"]):
+        shell_family = "cmd"
+    elif any(s in shell_name for s in ["pwsh"]):
+        shell_family = "pwsh"
+    else:
+        shell_family = "cmd" if os.name == "nt" else "posix"
 
     # ---------------- Shebang detection ---------------
 
@@ -117,17 +133,17 @@ def main() -> None:
         logger.error(f"'{file}' has no extension or no shebang.")
         sys.exit(1)
 
-    if extension not in runners:
+    if extension not in cmd_templates:
         logger.error(f"Unsupported extension '.{extension}'.")
         logger.info(
-            "Tip: Add a runner for this extension to your user or project quikrun.toml config."
+            "Tip: Add a command template for this extension to your user or project quikrun.toml config."
         )
         sys.exit(1)
 
-    raw_template: Any = runners[extension]
+    raw_template: Any = cmd_templates[extension]
 
     # Recursively resolve and flatten all aliases, dictionaries, and arrays
-    flattened_cmds: list[str] = resolve_template(raw_template, platform_name, runners)
+    flattened_cmds: list[str] = resolve_template(raw_template, shell_family, platform_key, cmd_templates)
 
     if not flattened_cmds:
         logger.error(f"Invalid configuration for extension '.{extension}'.")
@@ -173,6 +189,17 @@ def main() -> None:
         cmd += " " + shlex.join(extra_args)
         display_cmd += " " + shlex.join(extra_args)
 
+    if cfg.get("cd_to_file_dir"):
+        if shell_family == "cmd":
+            cmd = f'cd /d "{file_dir_q}" && {cmd}'
+            display_cmd = f'cd /d "{file_dir_rel_q}" && {display_cmd}'
+        elif shell_family == "pwsh":
+            cmd = f"cd '{file_dir_q}'; if ($?) {{ {cmd} }}"
+            display_cmd = f"cd '{file_dir_rel_q}'; if ($?) {{ {display_cmd} }}"
+        else: # posix
+            cmd = f"cd {file_dir_q} && {cmd}"
+            display_cmd = f"cd {file_dir_rel_q} && {display_cmd}"
+
     if cfg.get("clear_terminal"):
         os.system("cls" if os.name == "nt" else "clear")
 
@@ -182,7 +209,7 @@ def main() -> None:
         show_time=bool(cfg.get("show_time_took")),
         show_command=bool(cfg.get("show_command")),
         display_cmd=display_cmd,
-        cwd=str(file.parent.resolve()) if cfg.get("cd_to_file_dir") else None,
+        cwd=None,
         show_shell=bool(cfg.get("show_shell")),
     )
 

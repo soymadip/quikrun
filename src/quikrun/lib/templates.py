@@ -5,7 +5,9 @@ Template placeholders:
   {out}   — shell-quoted path to the compiled output binary
 """
 
-RUNNERS: dict[str, str | list[str] | dict[str, str | list[str]]] = {
+from typing import Any
+
+CMD_TEMPLATES: dict[str, Any] = {
     #
     # ---------------- Interpreted ---------------
     "js": ["bun run {file}", "deno run {file}", "node {file}"],
@@ -28,8 +30,13 @@ RUNNERS: dict[str, str | list[str] | dict[str, str | list[str]]] = {
     "dart": "dart run {file}",
     "jl": "julia {file}",
     "py": {
-        "posix": "python3 {file}",
-        "win": "python {file}",
+        "posix": {
+            "linux": "python3 {file}",
+            "darwin": "python3 {file}",
+            "win": "python {file}",
+        },
+        "cmd": "python {file}",
+        "pwsh": "python {file}",
     },
     #
     # ---------------- Compiled ---------------

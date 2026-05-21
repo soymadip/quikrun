@@ -4,9 +4,9 @@ Priority (highest → lowest):
   1. Project-level : quikrun.toml in CWD
                      or pyproject.toml [tool.quikrun] in CWD
   2. User-level    : $XDG_CONFIG_HOME/quikrun/config.toml
-  3. Built-in      : runners.RUNNERS
+  3. Built-in      : templates.COMMAND_TEMPLATES
 
-Each level's [runners] table is merged over the one below it.
+Each level's [cmds] table is merged over the one below it.
 """
 
 import os
@@ -14,7 +14,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from .runners import RUNNERS
+from .templates import CMD_TEMPLATES
 
 
 def xdg_config_home() -> Path:
@@ -43,7 +43,7 @@ def _read_toml(file: Path) -> dict[str, Any]:
 
 
 def load() -> dict[str, Any]:
-    """Return the fully merged configuration (settings + runners).
+    """Return the fully merged configuration (settings + command templates).
 
     Cascading priority: Built-in < User-level < Project-level
     """
@@ -57,7 +57,7 @@ def load() -> dict[str, Any]:
         "temp_dir": None,
         "cd_to_file_dir": False,
         "keep_artifacts": False,
-        "runners": RUNNERS.copy(),
+        "cmds": CMD_TEMPLATES.copy(),
     }
 
     # 2. User-level: ~/.config/quikrun/config.toml
@@ -66,11 +66,11 @@ def load() -> dict[str, Any]:
     )
 
     for key in default_conf:
-        if key != "runners" and key in user_conf:
+        if key != "cmds" and key in user_conf:
             default_conf[key] = user_conf[key]
 
-    if "runners" in user_conf:
-        default_conf["runners"].update(user_conf["runners"])
+    if "cmds" in user_conf:
+        default_conf["cmds"].update(user_conf["cmds"])
 
     # 3. Project-level: quikrun.toml in CWD, falling back to pyproject.toml [tool.quikrun]
     cwd: Path = Path.cwd()
@@ -83,10 +83,10 @@ def load() -> dict[str, Any]:
         project_conf = pyproject.get("tool", {}).get("quikrun", {})
 
     for key in default_conf:
-        if key != "runners" and key in project_conf:
+        if key != "cmds" and key in project_conf:
             default_conf[key] = project_conf[key]
 
-    if "runners" in project_conf:
-        default_conf["runners"].update(project_conf["runners"])
+    if "cmds" in project_conf:
+        default_conf["cmds"].update(project_conf["cmds"])
 
     return default_conf
