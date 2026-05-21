@@ -36,6 +36,7 @@ def footer(
     cmd: str | None = None,
     show_time: bool = True,
     is_shebang: bool = False,
+    shell_path: str | None = None,
 ) -> None:
     """Print the execution footer divider and exit status."""
     if _tty():
@@ -47,6 +48,9 @@ def footer(
         print(fmt("⏵ Ran successfully", _GREEN) + time_str)
     else:
         print(fmt(f"⏵ Failed with exit code {exit_code}", _RED) + time_str)
+
+    if shell_path:
+        print(fmt("⏵ Shell: ", _CYAN) + fmt(shell_path, _DIM))
 
     if cmd:
         prefix = "⏵ Command (shebang): " if is_shebang else "⏵ Command: "

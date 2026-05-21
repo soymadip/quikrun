@@ -52,6 +52,7 @@ def run_cmd(
     show_command: bool = False,
     display_cmd: str | None = None,
     cwd: str | None = None,
+    show_shell: bool = False,
 ) -> int:
     """Execute a fully-resolved runner command through the shell."""
 
@@ -67,12 +68,29 @@ def run_cmd(
     return_code: int = subprocess.run(cmd, **kwargs).returncode
     elapsed_time: float = time.perf_counter() - start
 
-    if show_time or show_command:
+    if show_time or show_command or show_shell:
+        shell_path = None
+        if show_shell:
+            import shutil
+
+            raw_shell = (
+                shell
+                if shell is not None
+                else (
+                    os.environ.get("COMSPEC", "cmd.exe")
+                    if os.name == "nt"
+                    else "/bin/sh"
+                )
+            )
+
+            shell_path = shutil.which(raw_shell) or raw_shell
+
         logger.footer(
             elapsed_time,
             return_code,
             (display_cmd or cmd) if show_command else None,
             show_time=show_time,
+            shell_path=shell_path,
         )
 
     return return_code

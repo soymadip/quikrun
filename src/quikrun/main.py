@@ -183,6 +183,7 @@ def main() -> None:
             show_command=bool(cfg.get("show_command")),
             display_cmd=display_cmd,
             cwd=str(file.parent.resolve()) if cfg.get("cd_to_file_dir") else None,
+            show_shell=bool(cfg.get("show_shell")),
         )
     )
 
