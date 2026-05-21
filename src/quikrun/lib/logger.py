@@ -42,7 +42,7 @@ def footer(
     if _tty():
         print(fmt("-" * 43, _DIM))
 
-    time_str = fmt(f" (in {elapsed:.1f}s)", _DIM) if show_time else ""
+    time_str = fmt(f" (in {elapsed:.3f}s)", _DIM) if show_time else ""
 
     if exit_code == 0:
         print(fmt("⏵ Ran successfully", _GREEN) + time_str)
