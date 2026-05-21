@@ -30,31 +30,21 @@ def fmt(text: str, *codes: str) -> str:
 # ---------------- Public API ---------------
 
 
-def header(file: str, runner: str, cmd: str | None = None) -> None:
-    """Print the execution banner before running the file."""
-    print(
-        _c("⚡ quikrun", _BOLD, _CYAN)
-        + " → "
-        + _c(file, _BOLD)
-        + "  "
-        + _c(f"[{runner}]", _DIM)
-    )
-    if cmd:
-        print(_c(f"$ {cmd}", _DIM))
-    print(_c("─" * 44, _DIM))
-
-
-def footer(elapsed: float, exit_code: int) -> None:
+def footer(elapsed: float, exit_code: int, cmd: str | None = None, show_time: bool = True, is_shebang: bool = False) -> None:
     """Print the execution footer divider and exit status."""
     if _tty():
-        print(_c("─" * 44, _DIM))
+        print(fmt("-" * 43, _DIM))
+
+    time_str = fmt(f" (in {elapsed:.1f}s)", _DIM) if show_time else ""
+
     if exit_code == 0:
-        print(_c(":: ", _GREEN) + f"Execution succeeded in {elapsed:.3f}s")
+        print(fmt("⏵ Ran successfully", _GREEN) + time_str)
     else:
-        print(
-            _c(":: ", _RED)
-            + f"Execution failed in {elapsed:.3f}s (exit code: {exit_code})"
-        )
+        print(fmt(f"⏵ Failed with exit code {exit_code}", _RED) + time_str)
+
+    if cmd:
+        prefix = "⏵ Command (shebang): " if is_shebang else "⏵ Command: "
+        print(fmt(prefix, _CYAN) + fmt(cmd, _DIM))
 
 
 def info(msg: str) -> None:

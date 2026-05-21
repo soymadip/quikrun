@@ -43,6 +43,7 @@ def run_cmd(
     cmd: str,
     shell: str | None,
     show_time: bool,
+    show_command: bool,
 ) -> int:
     """Execute a fully-resolved runner command through the shell."""
 
@@ -55,8 +56,13 @@ def run_cmd(
     return_code: int = subprocess.run(cmd, **kwargs).returncode
     elapsed_time: float = time.perf_counter() - start
 
-    if show_time:
-        logger.footer(elapsed_time, return_code)
+    if show_time or show_command:
+        logger.footer(
+            elapsed_time,
+            return_code,
+            cmd if show_command else None,
+            show_time=show_time,
+        )
 
     return return_code
 

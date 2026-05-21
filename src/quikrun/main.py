@@ -28,6 +28,7 @@ def _build_parser() -> ArgumentParser:
         version=f"%(prog)s {__version__}",
     )
     parser.add_argument("file", help="Source file to run")
+
     return parser
 
 
@@ -47,7 +48,6 @@ def main() -> None:
     args, extra_args = parser.parse_known_args()
 
     file: Path = Path(args.file)
-    runner_label: str
 
     # ---------------- Validation ---------------
 
@@ -87,28 +87,26 @@ def main() -> None:
 
     if os.name == "posix":
         if shebang := detect_shebang(file):
-            logger.info(f"Shebang detected: {shebang}")
+            if cfg.get("clear_terminal"):
+                os.system("cls" if os.name == "nt" else "clear")
 
             shebang_cmd_list: list[str] = shlex.split(shebang)
             full_cmd = [*shebang_cmd_list, str(file.resolve()), *extra_args]
 
-            if cfg.get("clear_terminal"):
-                os.system("clear")
-
-            runner_label = f"shebang: {shebang_cmd_list[0].split('/')[-1]}"
-            shebang_cmd: str | None = None
-
-            if cfg.get("show_command"):
-                shebang_cmd = shlex.join(full_cmd)
-
-            logger.header(str(file), runner_label, shebang_cmd)
+            full_cmd_str = shlex.join(full_cmd)
 
             start: float = time.perf_counter()
             result: CompletedProcess = subprocess.run(full_cmd)
             elapsed: float = time.perf_counter() - start
 
-            if cfg.get("show_time_took"):
-                logger.footer(elapsed, result.returncode)
+            if cfg.get("show_time_took") or cfg.get("show_command"):
+                logger.footer(
+                    elapsed,
+                    result.returncode,
+                    full_cmd_str if cfg.get("show_command") else None,
+                    show_time=bool(cfg.get("show_time_took")),
+                    is_shebang=True,
+                )
 
             sys.exit(result.returncode)
 
@@ -147,8 +145,6 @@ def main() -> None:
     if not template:
         template = flattened_cmds[-1]
 
-    # Format runner name for the header log
-    runner_label = template.split()[0]
 
     file_q: str = shlex.quote(str(file.resolve()))
     out_q: str = shlex.quote(str(get_out_path(file)))
@@ -157,21 +153,15 @@ def main() -> None:
     if extra_args:
         cmd += " " + shlex.join(extra_args)
 
-    runner_cmd: str | None = None
-
-    if cfg.get("show_command"):
-        runner_cmd = cmd
-
     if cfg.get("clear_terminal"):
         os.system("cls" if os.name == "nt" else "clear")
-
-    logger.header(str(file), runner_label, runner_cmd)
 
     sys.exit(
         run_cmd(
             cmd,
             resolved_shell,
             bool(cfg.get("show_time_took")),
+            bool(cfg.get("show_command")),
         )
     )
 
