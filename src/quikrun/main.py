@@ -92,8 +92,7 @@ def main() -> None:
 
             shebang_cmd_list: list[str] = shlex.split(shebang)
             full_cmd = [*shebang_cmd_list, str(file.resolve()), *extra_args]
-
-            full_cmd_str = shlex.join(full_cmd)
+            display_cmd_str = shlex.join([*shebang_cmd_list, str(file), *extra_args])
 
             start: float = time.perf_counter()
             result: CompletedProcess = subprocess.run(full_cmd)
@@ -103,7 +102,7 @@ def main() -> None:
                 logger.footer(
                     elapsed,
                     result.returncode,
-                    full_cmd_str if cfg.get("show_command") else None,
+                    display_cmd_str if cfg.get("show_command") else None,
                     show_time=bool(cfg.get("show_time_took")),
                     is_shebang=True,
                 )
@@ -145,12 +144,17 @@ def main() -> None:
     if not template:
         template = flattened_cmds[-1]
 
-    file_q: str = shlex.quote(str(file.resolve()))
+    file_q: str = shlex.quote(str(file.resolve()))  # absolute — for execution
+    file_rel_q: str = shlex.quote(str(file))  # relative — for display only
     out_q: str = shlex.quote(str(get_out_path(file)))
+
+    # Fill in templates
     cmd: str = template.format(file=file_q, out=out_q)
+    display_cmd: str = template.format(file=file_rel_q, out=out_q)
 
     if extra_args:
         cmd += " " + shlex.join(extra_args)
+        display_cmd += " " + shlex.join(extra_args)
 
     if cfg.get("clear_terminal"):
         os.system("cls" if os.name == "nt" else "clear")
@@ -158,9 +162,10 @@ def main() -> None:
     sys.exit(
         run_cmd(
             cmd,
-            resolved_shell,
-            bool(cfg.get("show_time_took")),
-            bool(cfg.get("show_command")),
+            shell=resolved_shell,
+            show_time=bool(cfg.get("show_time_took")),
+            show_command=bool(cfg.get("show_command")),
+            display_cmd=display_cmd,
         )
     )
 

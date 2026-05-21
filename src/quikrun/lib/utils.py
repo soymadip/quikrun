@@ -41,9 +41,10 @@ def detect_shebang(file: Path) -> str | None:
 
 def run_cmd(
     cmd: str,
-    shell: str | None,
-    show_time: bool,
-    show_command: bool,
+    shell: str | None = None,
+    show_time: bool = False,
+    show_command: bool = False,
+    display_cmd: str | None = None,
 ) -> int:
     """Execute a fully-resolved runner command through the shell."""
 
@@ -60,7 +61,7 @@ def run_cmd(
         logger.footer(
             elapsed_time,
             return_code,
-            cmd if show_command else None,
+            (display_cmd or cmd) if show_command else None,
             show_time=show_time,
         )
 
