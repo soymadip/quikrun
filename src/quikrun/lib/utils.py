@@ -5,10 +5,28 @@ import os
 import subprocess
 import sys
 import time
+from argparse import ArgumentParser
 from pathlib import Path
 from typing import Any
 
+from .. import __version__
 from . import logger
+
+
+def arg_parser() -> ArgumentParser:
+    parser: ArgumentParser = ArgumentParser(
+        prog="quikrun",
+        description="Run your code files without hassle.",
+    )
+    parser.add_argument(
+        "-v",
+        "--version",
+        action="version",
+        version=f"%(prog)s {__version__}",
+    )
+    parser.add_argument("file", help="Source file to run")
+
+    return parser
 
 
 def get_out_path(file: Path, temp_dir: str | None = None) -> Path:

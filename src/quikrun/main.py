@@ -11,25 +11,14 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
-from . import __version__
 from .lib import config, logger
-from .lib.utils import detect_shebang, get_out_path, resolve_template, run_cmd
-
-
-def _build_parser() -> ArgumentParser:
-    parser: ArgumentParser = ArgumentParser(
-        prog="quikrun",
-        description="Run your code files without hassle.",
-    )
-    parser.add_argument(
-        "-v",
-        "--version",
-        action="version",
-        version=f"%(prog)s {__version__}",
-    )
-    parser.add_argument("file", help="Source file to run")
-
-    return parser
+from .lib.utils import (
+    arg_parser,
+    detect_shebang,
+    get_out_path,
+    resolve_template,
+    run_cmd,
+)
 
 
 def main() -> None:
@@ -39,10 +28,10 @@ def main() -> None:
 
     # No arguments given
     if len(sys.argv) == 1:
-        _build_parser().print_help()
+        arg_parser().print_help()
         sys.exit(0)
 
-    parser: ArgumentParser = _build_parser()
+    parser: ArgumentParser = arg_parser()
     args: Namespace
     extra_args: list[str]
     args, extra_args = parser.parse_known_args()
