@@ -44,14 +44,16 @@ CMD_TEMPLATES: dict[str, Any] = {
     },
     #
     # ---------------- Compiled ---------------
-    "rs": "rustc {file} -o {out} && {out}",
-    "c": "gcc {file} -o {out} && {out}",
-    "cpp": "g++ {file} -o {out} && {out}",
-    "cxx": "@cpp",
+    #
+    "c": "gcc -Wall -Wextra {file} -o {out} && {out}",
+    "cpp": "g++ -std=c++23 -Wall -Wextra -Wshadow {file} -o {out} && {out}",
     "c++": "@cpp",
-    "nim": "nim c --out:{out} {file} && {out}",
-    "zig": "zig build-exe {file} -femit-bin={out} && {out}",
-    "v": "v -o {out} {file} && {out}",
+    "cxx": "@cpp",
+    "go": "go build {file} -o {out} && {out}",
     "hs": "ghc -o {out} {file} && {out}",
-    "kt": "kotlinc {file} -include-runtime -d {out}.jar && java -jar {out}.jar",
+    "kt": "kotlinc {file} -include-runtime -d {out_stem}.jar && java -jar {out_stem}.jar",
+    "nim": "nim c --out:{out} {file} && {out}",
+    "rs": "rustc {file} -o {out} && {out}",
+    "v": "v -o {out} {file} && {out}",
+    "zig": "zig build-exe {file} -femit-bin={out} && {out}",
 }

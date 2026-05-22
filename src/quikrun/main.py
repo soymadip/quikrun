@@ -168,13 +168,17 @@ def main() -> None:
     file_dir_rel_q: str = shlex.quote(str(file.parent))
     file_name_q: str = shlex.quote(file.name)
     file_stem_q: str = shlex.quote(file.stem)
+
     out_path: Path = get_out_path(file, temp_dir=cfg.get("temp_dir"))
+    out_stem_path: Path = out_path.with_suffix("")
     out_q: str = shlex.quote(str(out_path))
+    out_stem_q: str = shlex.quote(str(out_stem_path))
 
     # Fill in templates
     cmd: str = template.format(
         file=file_q,
         out=out_q,
+        out_stem=out_stem_q,
         file_dir=file_dir_q,
         file_name=file_name_q,
         file_stem=file_stem_q,
@@ -182,6 +186,7 @@ def main() -> None:
     display_cmd: str = template.format(
         file=file_rel_q,
         out=out_q,
+        out_stem=out_stem_q,
         file_dir=file_dir_rel_q,
         file_name=file_name_q,
         file_stem=file_stem_q,
@@ -215,20 +220,25 @@ def main() -> None:
         show_shell=bool(cfg.get("show_shell")),
     )
 
-    # Clean up temporary compiled binary if configured to do so
+    # Clean up temporary compiled binary and related artifacts if configured to do so
     if not cfg.get("keep_artifacts"):
         try:
-            if out_path.exists():
-                if out_path.is_file():
-                    out_path.unlink()
-                elif out_path.is_dir():
-                    shutil.rmtree(out_path)
+            parent_dir: Path = out_path.parent
+            stem = out_path.stem
+
+            if parent_dir.exists() and parent_dir.is_dir():
+                for item in parent_dir.iterdir():
+                    if item.stem == stem or item.name.startswith(stem + "."):
+                        if item.is_file():
+                            item.unlink()
+                        elif item.is_dir():
+                            shutil.rmtree(item)
 
             # Remove parent directory if it is empty
-            parent_dir: Path = out_path.parent
             if parent_dir.exists() and parent_dir.is_dir():
                 if not any(parent_dir.iterdir()):
                     parent_dir.rmdir()
+
         except Exception:
             pass
 
