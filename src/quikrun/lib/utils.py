@@ -88,11 +88,13 @@ def run_cmd(
             shell_path = shutil.which(raw_shell) or raw_shell
 
         logger.footer(
-            elapsed_time,
-            return_code,
-            (display_cmd or cmd) if show_command else None,
-            show_time=show_time,
-            shell_path=shell_path,
+            "Ran Successfully" if return_code == 0 else "Failed to Run",
+            succeeded=(return_code == 0),
+            elapsed_time=elapsed_time if show_time else None,
+            exit_code=return_code,
+            cmd=(display_cmd or cmd) if show_command else None,
+            shell_cmd=shell_path,
+            show_divider=show_divider,
         )
 
     return return_code

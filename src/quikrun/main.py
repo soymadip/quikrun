@@ -210,15 +210,16 @@ def main() -> None:
     if cfg.get("clear_terminal"):
         os.system("cls" if os.name == "nt" else "clear")
 
-    exit_code = run_cmd(
-        cmd,
-        shell=resolved_shell,
-        show_time=bool(cfg.get("show_time_took")),
-        show_command=bool(cfg.get("show_command")),
-        display_cmd=display_cmd,
-        cwd=None,
-        show_shell=bool(cfg.get("show_shell")),
-    )
+        exit_code = run_cmd(
+            run_cmd_str,
+            shell=resolved_shell,
+            show_time=bool(cfg.get("show_time_took")),
+            show_command=bool(cfg.get("show_command")),
+            display_cmd=run_display_cmd,
+            cwd=cwd_arg,
+            show_shell=bool(cfg.get("show_shell")),
+            show_divider=bool(cfg.get("show_divider")),
+        )
 
     # Clean up temporary compiled binary and related artifacts if configured to do so
     if not cfg.get("keep_artifacts"):
