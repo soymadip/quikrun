@@ -53,11 +53,17 @@ quikrun hello.c                   # compiles using gcc and runs the binary
 
 ### Forwarding Arguments
 
-Everything after the `--` separator is forwarded directly to your script:
+- For simple cases with no flag conflicts:
 
-```bash
-quikrun script.py -- --verbose --threads 4
-```
+  ```bash
+  quikrun script.py arg1 arg2
+  ```
+
+- Use the `--` separator to forward arguments to the script instead of quikrun:
+
+  ```bash
+  quikrun script.py -- --verbose --threads 4
+  ```
 
 ## Configuration
 
@@ -96,4 +102,5 @@ zig = "zig run {file}"
 
 ## Documentation
 
-For deep-dive usage, details about built-in compilers, or configuration, check out **[Wiki Pages](https://github.com/soymadip/quikrun/wiki)**:
+For deep-dive usage, details about built-in commands, or config, check out **[Wiki Pages](https://github.com/soymadip/quikrun/wiki)**:
+
