@@ -36,7 +36,11 @@ CMD_TEMPLATES: dict[str, Any] = {
             "win": "python {file}",
         },
         "cmd": "python {file}",
-        "pwsh": "python {file}",
+        "pwsh": {
+            "linux": "python3 {file}",
+            "darwin": "python3 {file}",
+            "win": "python {file}",
+        },
     },
     #
     # ---------------- Compiled ---------------
