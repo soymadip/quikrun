@@ -10,25 +10,17 @@ from typing import Any
 CMD_TEMPLATES: dict[str, Any] = {
     #
     # ---------------- Interpreted ---------------
-    "js": ["bun run {file}", "deno run {file}", "node {file}"],
-    "mjs": "@js",
-    "cjs": "@js",
-    "ts": ["@js", "ts-node {file}"],
-    "mts": "@ts",
-    "lua": "lua {file}",
-    "rb": "ruby {file}",
-    "go": "go run {file}",
-    "sh": "bash {file}",
     "bash": "bash {file}",
-    "zsh": "zsh {file}",
+    "dart": "dart run {file}",
     "fish": "fish {file}",
+    "java": "java {file}",
+    "jl": "julia {file}",
+    "js": ["bun run {file}", "deno run {file}", "node {file}"],
+    "cjs": "@js",
+    "mjs": "@js",
+    "lua": "lua {file}",
     "php": "php {file}",
     "pl": "perl {file}",
-    "r": "Rscript {file}",
-    "java": "java {file}",
-    "swift": "swift {file}",
-    "dart": "dart run {file}",
-    "jl": "julia {file}",
     "py": {
         "posix": {
             "linux": "python3 {file}",
@@ -42,6 +34,13 @@ CMD_TEMPLATES: dict[str, Any] = {
             "win": "python {file}",
         },
     },
+    "r": "Rscript {file}",
+    "rb": "ruby {file}",
+    "sh": "bash {file}",
+    "swift": "swift {file}",
+    "ts": ["@js", "ts-node {file}"],
+    "mts": "@ts",
+    "zsh": "zsh {file}",
     #
     # ---------------- Compiled ---------------
     #
