@@ -78,7 +78,7 @@ def main() -> None:
 
     if shell_cmd is not None:
         if isinstance(shell_cmd, dict):
-            resolved_shell = shell_cmd.get(platform_key, next(iter(shell_cmd.values())))
+            resolved_shell = shell_cmd.get(platform_key)
         else:
             resolved_shell = str(shell_cmd)
 
