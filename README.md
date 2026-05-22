@@ -64,16 +64,16 @@ quikrun script.py -- --verbose --threads 4
 quikrun merges config options in a hierarchy (highest priority wins):
 
 1. **Project:** `quikrun.toml` in your current working directory.
-2. **Project:** `[tool.quikrun.runners]` table inside `pyproject.toml`.
+2. **Project:** `[tool.quikrun.commands]` table inside `pyproject.toml`.
 3. **User:** `~/.config/quikrun/config.toml` (XDG-compliant).
 4. **Built-in:** Default fallbacks for common languages.
 
-### Customizing Runners
+### Customizing Commands
 
 Add a customized command configuration inside `~/.config/quikrun/config.toml`:
 
 ```toml
-[runners]
+[commands]
 # Use PyPy as the default runner for Python files
 py = "pypy {file}"
 
@@ -84,7 +84,7 @@ zig = "zig run {file}"
 Or Using `pyproject.toml`:
 
 ```toml
-[tool.quikrun.runners]
+[tool.quikrun.commands]
 # Use PyPy as the default runner for Python files
 py = "pypy {file}"
 

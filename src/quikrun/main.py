@@ -62,7 +62,7 @@ def main() -> None:
     # ---------------- Load Configuration ---------------
 
     cfg: dict[str, Any] = config.load()
-    cmd_templates: dict[str, Any] = cfg.get("cmds", {})
+    cmd_templates: dict[str, Any] = cfg.get("commands", {})
 
     shell_name = "sh"
     platform_key = "linux"

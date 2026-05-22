@@ -6,7 +6,7 @@ Priority (highest → lowest):
   2. User-level    : $XDG_CONFIG_HOME/quikrun/config.toml
   3. Built-in      : templates.COMMAND_TEMPLATES
 
-Each level's [cmds] table is merged over the one below it.
+Each level's [commands] table is merged over the one below it.
 """
 
 import os
@@ -57,7 +57,7 @@ def load() -> dict[str, Any]:
         "temp_dir": None,
         "cd_to_file_dir": False,
         "keep_artifacts": False,
-        "cmds": CMD_TEMPLATES.copy(),
+        "commands": CMD_TEMPLATES.copy(),
     }
 
     # 2. User-level: ~/.config/quikrun/config.toml
@@ -66,11 +66,11 @@ def load() -> dict[str, Any]:
     )
 
     for key in default_conf:
-        if key != "cmds" and key in user_conf:
+        if key != "commands" and key in user_conf:
             default_conf[key] = user_conf[key]
 
-    if "cmds" in user_conf:
-        default_conf["cmds"].update(user_conf["cmds"])
+    if "commands" in user_conf:
+        default_conf["commands"].update(user_conf["commands"])
 
     # 3. Project-level: quikrun.toml in CWD, falling back to pyproject.toml [tool.quikrun]
     cwd: Path = Path.cwd()
@@ -83,10 +83,10 @@ def load() -> dict[str, Any]:
         project_conf = pyproject.get("tool", {}).get("quikrun", {})
 
     for key in default_conf:
-        if key != "cmds" and key in project_conf:
+        if key != "commands" and key in project_conf:
             default_conf[key] = project_conf[key]
 
-    if "cmds" in project_conf:
-        default_conf["cmds"].update(project_conf["cmds"])
+    if "commands" in project_conf:
+        default_conf["commands"].update(project_conf["commands"])
 
     return default_conf
