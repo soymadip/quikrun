@@ -54,6 +54,7 @@ def load() -> dict[str, Any]:
         "show_time_took": True,
         "show_command": True,
         "show_shell": True,
+        "show_divider": True,
         "temp_dir": None,
         "cd_to_file_dir": False,
         "keep_artifacts": False,

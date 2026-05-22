@@ -53,13 +53,12 @@ def main() -> None:
     cfg: dict[str, Any] = config.load()
     cmd_templates: dict[str, Any] = cfg.get("commands", {})
 
-    shell_name = "sh"
-    platform_key = "linux"
-
     if sys.platform.startswith("win"):
         platform_key = "win"
     elif sys.platform == "darwin":
         platform_key = "darwin"
+    else:
+        platform_key = "linux"
 
     # Resolve custom shell
     shell_cmd = cfg.get("shell")
@@ -71,24 +70,29 @@ def main() -> None:
         else:
             resolved_shell = str(shell_cmd)
 
-    # Determine shell family
+    # Determine shell name
+    shell_name: str
+
     if resolved_shell:
         shell_path = shutil.which(resolved_shell) or resolved_shell
         shell_name = os.path.basename(shell_path).lower()
     elif os.name == "nt":
         shell_path = os.environ.get("COMSPEC", "cmd.exe")
         shell_name = os.path.basename(shell_path).lower()
+    else:
+        shell_name = "sh"
 
-    if any(s in shell_name for s in ["bash", "zsh", "dash", "ash", "sh"]):
+    # Determine shell family
+    if any(shell in shell_name for shell in ["bash", "zsh", "dash", "ash", "sh"]):
         shell_family = "posix"
-    elif any(s in shell_name for s in ["cmd"]):
+    elif "cmd" in shell_name:
         shell_family = "cmd"
     elif any(s in shell_name for s in ["pwsh"]):
         shell_family = "pwsh"
     else:
         shell_family = "cmd" if os.name == "nt" else "posix"
 
-    # ---------------- Shebang detection ---------------
+    # ---------------- Shebang detected ---------------
 
     if os.name == "posix":
         if shebang := detect_shebang(file):
@@ -103,13 +107,19 @@ def main() -> None:
             result: CompletedProcess = subprocess.run(full_cmd)
             elapsed: float = time.perf_counter() - start
 
-            if cfg.get("show_time_took") or cfg.get("show_command"):
+            if (
+                cfg.get("show_time_took")
+                or cfg.get("show_command")
+                or cfg.get("show_shell")
+            ):
                 logger.footer(
-                    elapsed,
-                    result.returncode,
-                    display_cmd_str if cfg.get("show_command") else None,
-                    show_time=bool(cfg.get("show_time_took")),
-                    is_shebang=True,
+                    "Ran Successfully" if result.returncode == 0 else "Failed to Run",
+                    succeeded=(result.returncode == 0),
+                    exit_code=result.returncode,
+                    elapsed_time=elapsed if cfg.get("show_time_took") else None,
+                    cmd=display_cmd_str if cfg.get("show_command") else None,
+                    shebang=True,
+                    show_divider=bool(cfg.get("show_divider")),
                 )
 
             sys.exit(result.returncode)
@@ -119,7 +129,7 @@ def main() -> None:
     extension: str = file.suffix.lstrip(".")
 
     if not extension:
-        logger.error(f"'{file}' has no extension or no shebang.")
+        logger.error(f"'{file}' has no extension nor shebang.")
         sys.exit(1)
 
     if extension not in cmd_templates:
@@ -132,7 +142,7 @@ def main() -> None:
     raw_template: Any = cmd_templates[extension]
 
     # Recursively resolve and flatten all aliases, dictionaries, and arrays
-    flattened_cmds: list[str] = resolve_template(
+    flattened_cmds: list[Any] = resolve_template(
         raw_template, shell_family, platform_key, cmd_templates
     )
 
@@ -141,12 +151,20 @@ def main() -> None:
         sys.exit(1)
 
     # Resolve smart fallbacks by checking which executable is installed
-    template: str = ""
+    template: Any = ""
     for cmd_tmpl in flattened_cmds:
-        executable = cmd_tmpl.split()[0]
-        if shutil.which(executable) is not None:
-            template = cmd_tmpl
-            break
+        if isinstance(cmd_tmpl, dict):
+            cmd_str = cmd_tmpl.get("compile") or cmd_tmpl.get("run", "")
+        else:
+            cmd_str = cmd_tmpl
+
+        if cmd_str:
+            parts = cmd_str.split()
+            if parts:
+                executable = parts[0]
+                if shutil.which(executable) is not None:
+                    template = cmd_tmpl
+                    break
 
     if not template:
         template = flattened_cmds[-1]
@@ -163,41 +181,82 @@ def main() -> None:
     out_q: str = shlex.quote(str(out_path))
     out_stem_q: str = shlex.quote(str(out_stem_path))
 
-    # Fill in templates
-    cmd: str = template.format(
-        file=file_q,
-        out=out_q,
-        out_stem=out_stem_q,
-        file_dir=file_dir_q,
-        file_name=file_name_q,
-        file_stem=file_stem_q,
-    )
-    display_cmd: str = template.format(
-        file=file_rel_q,
-        out=out_q,
-        out_stem=out_stem_q,
-        file_dir=file_dir_rel_q,
-        file_name=file_name_q,
-        file_stem=file_stem_q,
-    )
-
-    if extra_args:
-        cmd += " " + shlex.join(extra_args)
-        display_cmd += " " + shlex.join(extra_args)
-
+    cwd_arg: str | None = None
     if cfg.get("cd_to_file_dir"):
-        if shell_family == "cmd":
-            cmd = f'cd /d "{file_dir_q}" && {cmd}'
-            display_cmd = f'cd /d "{file_dir_rel_q}" && {display_cmd}'
-        elif shell_family == "pwsh":
-            cmd = f"cd '{file_dir_q}'; if ($?) {{ {cmd} }}"
-            display_cmd = f"cd '{file_dir_rel_q}'; if ($?) {{ {display_cmd} }}"
-        else:  # posix
-            cmd = f"cd {file_dir_q} && {cmd}"
-            display_cmd = f"cd {file_dir_rel_q} && {display_cmd}"
+        cwd_arg = str(file.parent.resolve())
 
-    if cfg.get("clear_terminal"):
-        os.system("cls" if os.name == "nt" else "clear")
+    compile_tmpl = template.get("compile", "") if isinstance(template, dict) else ""
+    run_tmpl = template.get("run", "") if isinstance(template, dict) else template
+
+    def format_cmd(tmpl: str, for_display: bool = False) -> str:
+        if not tmpl:
+            return ""
+        return tmpl.format(
+            file=file_rel_q if for_display else file_q,
+            out=out_q,
+            out_stem=out_stem_q,
+            file_dir=file_dir_rel_q if for_display else file_dir_q,
+            file_name=file_name_q,
+            file_stem=file_stem_q,
+        )
+
+    if compile_tmpl:
+        compile_cmd = format_cmd(compile_tmpl)
+        compile_display_cmd = format_cmd(compile_tmpl, for_display=True)
+
+        # Run compile command
+        kwargs: dict[str, Any] = {"shell": True}
+        if resolved_shell is not None:
+            kwargs["executable"] = resolved_shell
+        if cwd_arg is not None:
+            kwargs["cwd"] = cwd_arg
+
+        compile_start: float = time.perf_counter()
+        compile_result = subprocess.run(compile_cmd, **kwargs)
+        compile_elapsed: float = time.perf_counter() - compile_start
+
+        if compile_result.returncode != 0:
+            if (
+                cfg.get("show_time_took")
+                or cfg.get("show_command")
+                or cfg.get("show_shell")
+            ):
+                shell_path = None
+                if cfg.get("show_shell"):
+                    raw_shell = (
+                        resolved_shell
+                        if resolved_shell is not None
+                        else (
+                            os.environ.get("COMSPEC", "cmd.exe")
+                            if os.name == "nt"
+                            else "/bin/sh"
+                        )
+                    )
+                    shell_path = shutil.which(raw_shell) or raw_shell
+
+                logger.footer(
+                    "Failed to Compile",
+                    succeeded=False,
+                    elapsed_time=compile_elapsed if cfg.get("show_time_took") else None,
+                    exit_code=compile_result.returncode,
+                    cmd=compile_display_cmd if cfg.get("show_command") else None,
+                    shell_cmd=shell_path,
+                    show_divider=bool(cfg.get("show_divider")),
+                )
+
+            sys.exit(compile_result.returncode)
+
+    exit_code = 0
+    if run_tmpl:
+        run_cmd_str = format_cmd(run_tmpl)
+        run_display_cmd = format_cmd(run_tmpl, for_display=True)
+
+        if extra_args:
+            run_cmd_str += " " + shlex.join(extra_args)
+            run_display_cmd += " " + shlex.join(extra_args)
+
+        if cfg.get("clear_terminal"):
+            os.system("cls" if os.name == "nt" else "clear")
 
         exit_code = run_cmd(
             run_cmd_str,

@@ -44,15 +44,24 @@ CMD_TEMPLATES: dict[str, Any] = {
     #
     # ---------------- Compiled ---------------
     #
-    "c": "gcc -Wall -Wextra {file} -o {out} && {out}",
-    "cpp": "g++ -std=c++23 -Wall -Wextra -Wshadow {file} -o {out} && {out}",
+    "c": {"compile": "gcc -Wall -Wextra {file} -o {out}", "run": "{out}"},
+    "cpp": {
+        "compile": "g++ -std=c++23 -Wall -Wextra -Wshadow {file} -o {out}",
+        "run": "{out}",
+    },
     "c++": "@cpp",
     "cxx": "@cpp",
-    "go": "go build {file} -o {out} && {out}",
-    "hs": "ghc -o {out} {file} && {out}",
-    "kt": "kotlinc {file} -include-runtime -d {out_stem}.jar && java -jar {out_stem}.jar",
-    "nim": "nim c --out:{out} {file} && {out}",
-    "rs": "rustc {file} -o {out} && {out}",
-    "v": "v -o {out} {file} && {out}",
-    "zig": "zig build-exe {file} -femit-bin={out} && {out}",
+    "go": {"compile": "go build -o {out} {file}", "run": "{out}"},
+    "hs": {"compile": "ghc -o {out} {file}", "run": "{out}"},
+    "kt": {
+        "compile": "kotlinc {file} -include-runtime -d {out_stem}.jar",
+        "run": "java -jar {out_stem}.jar",
+    },
+    "nim": {"compile": "nim c --out:{out} {file}", "run": "{out}"},
+    "rs": {"compile": "rustc {file} -o {out}", "run": "{out}"},
+    "v": {"compile": "v -o {out} {file}", "run": "{out}"},
+    "zig": {
+        "compile": "zig build-exe {file} -femit-bin={out}",
+        "run": "{out}",
+    },
 }

@@ -73,6 +73,7 @@ def run_cmd(
     display_cmd: str | None = None,
     cwd: str | None = None,
     show_shell: bool = False,
+    show_divider: bool = True,
 ) -> int:
     """Execute a fully-resolved runner command through the shell."""
 
@@ -124,7 +125,7 @@ def resolve_template(
     platform_key: str,
     command_templates: dict[str, Any],
     depth: int = 0,
-) -> list[str]:
+) -> list[Any]:
     """Recursively flatten aliases, platform dicts, and arrays into a flat list of commands."""
 
     if depth > 10:
@@ -151,7 +152,10 @@ def resolve_template(
         return [tmpl]
 
     if isinstance(tmpl, dict):
-        # 1. Resolve Shell Family
+        if "compile" in tmpl or "run" in tmpl:
+            return [tmpl]
+
+        # Resolve Shell Family
         if shell_family in tmpl:
             val = tmpl[shell_family]
         else:
@@ -160,8 +164,8 @@ def resolve_template(
             )
             sys.exit(1)
 
-        # 2. Resolve OS Platform (if nested dict)
-        if isinstance(val, dict):
+        # Resolve OS Platform (if nested dict)
+        if isinstance(val, dict) and not ("compile" in val or "run" in val):
             if platform_key in val:
                 val = val[platform_key]
             else:
