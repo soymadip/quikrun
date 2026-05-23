@@ -7,7 +7,7 @@ src_dir = str(Path(__file__).parent.parent.resolve())
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from quikrun.metadata.cmd_templates import cmd_templates
+from quikrun.metadata.cmd_templates import cmd_templates  # noqa: E402
 
 NAME_MAP = {
     "linux": "Linux",

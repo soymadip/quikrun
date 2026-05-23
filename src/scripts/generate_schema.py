@@ -142,7 +142,7 @@ def main() -> None:
                         "items": {"$ref": "#/definitions/commandValue"},
                     },
                     {"$ref": "#/definitions/shellFamilySpecific"},
-                ]
+                ],
             },
         },
     }
