@@ -53,13 +53,30 @@ def _read_json(file: Path) -> dict[str, Any]:
 
     except FileNotFoundError:
         return {}
-        
+
     except json.JSONDecodeError as e:
         # Warn but don't crash
         from . import logger
 
         logger.warn(f"Ignoring malformed config at {file}: {e}")
         return {}
+
+
+def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]:
+    """Recursively merge override into base.
+
+    For keys present in both, if both values are dicts, they are merged recursively.
+    Otherwise, the value from override overwrites the value in base.
+    """
+    result = base.copy()
+
+    for key, val in override.items():
+        if key in result and isinstance(result[key], dict) and isinstance(val, dict):
+            result[key] = deep_merge(result[key], val)
+        else:
+            result[key] = val
+
+    return result
 
 
 # ---------------- Public API ---------------
@@ -93,8 +110,10 @@ def load() -> dict[str, Any]:
         if key != "commands" and key in user_conf:
             default_conf[key] = user_conf[key]
 
-    if "commands" in user_conf:
-        default_conf["commands"].update(user_conf["commands"])
+    if "commands" in user_conf and isinstance(user_conf["commands"], dict):
+        default_conf["commands"] = deep_merge(
+            default_conf["commands"], user_conf["commands"]
+        )
 
     # 3. Project-level: quikrun.toml -> pyproject.toml -> Cargo.toml -> package.json in CWD
     cwd: Path = Path.cwd()
@@ -121,7 +140,9 @@ def load() -> dict[str, Any]:
         if key != "commands" and key in project_conf:
             default_conf[key] = project_conf[key]
 
-    if "commands" in project_conf:
-        default_conf["commands"].update(project_conf["commands"])
+    if "commands" in project_conf and isinstance(project_conf["commands"], dict):
+        default_conf["commands"] = deep_merge(
+            default_conf["commands"], project_conf["commands"]
+        )
 
     return default_conf
