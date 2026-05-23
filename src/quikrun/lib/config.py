@@ -39,6 +39,29 @@ def _read_toml(file: Path) -> dict[str, Any]:
         return {}
 
 
+def _read_json(file: Path) -> dict[str, Any]:
+    """Parse a JSON file, silently returning {} on missing file or parse error."""
+    import json
+
+    try:
+        with file.open("r", encoding="utf-8") as f:
+            data = json.load(f)
+            if isinstance(data, dict):
+                return data
+
+            return {}
+
+    except FileNotFoundError:
+        return {}
+        
+    except json.JSONDecodeError as e:
+        # Warn but don't crash
+        from . import logger
+
+        logger.warn(f"Ignoring malformed config at {file}: {e}")
+        return {}
+
+
 # ---------------- Public API ---------------
 
 
@@ -73,15 +96,26 @@ def load() -> dict[str, Any]:
     if "commands" in user_conf:
         default_conf["commands"].update(user_conf["commands"])
 
-    # 3. Project-level: quikrun.toml in CWD, falling back to pyproject.toml [tool.quikrun]
+    # 3. Project-level: quikrun.toml -> pyproject.toml -> Cargo.toml -> package.json in CWD
     cwd: Path = Path.cwd()
     project_conf: dict[str, Any] = {}
 
     if (cwd / "quikrun.toml").exists():
         project_conf = _read_toml(cwd / "quikrun.toml")
-    else:
+    elif (cwd / "pyproject.toml").exists():
         pyproject: dict[str, Any] = _read_toml(cwd / "pyproject.toml")
-        project_conf = pyproject.get("tool", {}).get("quikrun", {})
+        raw_conf = pyproject.get("tool", {}).get("quikrun", {})
+        if isinstance(raw_conf, dict):
+            project_conf = raw_conf
+    elif (cwd / "Cargo.toml").exists():
+        cargo: dict[str, Any] = _read_toml(cwd / "Cargo.toml")
+        raw_conf = cargo.get("package", {}).get("metadata", {}).get("quikrun", {})
+        if isinstance(raw_conf, dict):
+            project_conf = raw_conf
+    elif (cwd / "package.json").exists():
+        raw_conf = _read_json(cwd / "package.json").get("quikrun", {})
+        if isinstance(raw_conf, dict):
+            project_conf = raw_conf
 
     for key in default_conf:
         if key != "commands" and key in project_conf:
