@@ -1,13 +1,17 @@
-"""Built-in extension → command mappings for quikrun.
+"""Built-in command mappings for quikrun.
 
 Template placeholders:
-  {file}  — shell-quoted absolute path to the source file
-  {out}   — shell-quoted path to the compiled output binary
+  {file}      — shell-quoted absolute path to the source file
+  {out}       — shell-quoted path to the compiled output binary
+  {out_stem}  — shell-quoted path to the compiled output binary without extension
+  {file_dir}  — shell-quoted absolute path to the source file's directory
+  {file_name} — shell-quoted filename with extension (e.g., 'main.py')
+  {file_stem} — shell-quoted filename without extension (e.g., 'main')
 """
 
 from typing import Any
 
-CMD_TEMPLATES: dict[str, Any] = {
+cmd_templates: dict[str, Any] = {
     #
     # ---------------- Interpreted ---------------
     "bash": "bash {file}",

@@ -8,9 +8,9 @@
 ## Features
 
 - **Auto language Detection:** Auto-detects language by extension or shebang headers (`#!`).
-- **Argument Forwarding:** Pass arguments/flags to your scripts easily, with support for POSIX `--` separator.
-- **Sane Defaults:** Default command templates include generally recommended flags/options.
-- **Custmisation:** Allows customising/overriding behaviour or commands to suit your own taste
+- **Sane Defaults:** Default command templates preconfigured with generally recommended compiler/interpreter flags.
+- **Highly Configurable:** Add new languages or override behavior to suit your own taste
+- **Argument Forwarding:** Safely forward arguments/flags to your scripts easily, with support for POSIX `--` separator.
 
 ---
 
@@ -78,4 +78,4 @@ quikrun merges config options in a hierarchy (highest priority wins):
 5. **User:** `~/.config/quikrun/config.toml` (XDG-compliant).
 6. **Built-in:** Default fallbacks for common languages.
 
-For customization, default commands, or custom commands, check out **[Documentation](https://github.com/soymadip/quikrun/wiki)**:
+For customization, default commands, or custom commands, check out **[Documentation](https://soymadip.github.io/quikrun)**:

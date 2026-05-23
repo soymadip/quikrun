@@ -4,9 +4,11 @@ __pycache__/
 *.py[oc]
 build/
 dist/
+cache/
 wheels/
 *.egg-info
-/wiki/
+wiki/
+node_modules/
 
 # Virtual environments
 .venv

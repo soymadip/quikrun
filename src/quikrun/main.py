@@ -11,7 +11,7 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
-from .lib import config, logger
+from .lib import loader, logger
 from .lib.utils import (
     arg_parser,
     detect_shebang,
@@ -50,8 +50,8 @@ def main() -> None:
 
     # ---------------- Load Configuration ---------------
 
-    cfg: dict[str, Any] = config.load()
-    cmd_templates: dict[str, Any] = cfg.get("commands", {})
+    config: dict[str, Any] = loader.load_conf()
+    cmd_templates: dict[str, Any] = config.get("commands", {})
 
     if sys.platform.startswith("win"):
         platform_key = "win"
@@ -61,7 +61,7 @@ def main() -> None:
         platform_key = "linux"
 
     # Resolve custom shell
-    shell_cmd = cfg.get("shell")
+    shell_cmd = config.get("shell")
     resolved_shell: str | None = None
 
     if shell_cmd is not None:
@@ -96,7 +96,7 @@ def main() -> None:
 
     if os.name == "posix":
         if shebang := detect_shebang(file):
-            if cfg.get("clear_terminal"):
+            if config.get("clear_terminal"):
                 os.system("cls" if os.name == "nt" else "clear")
 
             shebang_cmd_list: list[str] = shlex.split(shebang)
@@ -108,18 +108,18 @@ def main() -> None:
             elapsed: float = time.perf_counter() - start
 
             if (
-                cfg.get("show_time_took")
-                or cfg.get("show_command")
-                or cfg.get("show_shell")
+                config.get("show_time_took")
+                or config.get("show_command")
+                or config.get("show_shell")
             ):
                 logger.footer(
                     "Ran Successfully" if result.returncode == 0 else "Failed to Run",
                     succeeded=(result.returncode == 0),
                     exit_code=result.returncode,
-                    elapsed_time=elapsed if cfg.get("show_time_took") else None,
-                    cmd=display_cmd_str if cfg.get("show_command") else None,
+                    elapsed_time=elapsed if config.get("show_time_took") else None,
+                    cmd=display_cmd_str if config.get("show_command") else None,
                     shebang=True,
-                    show_divider=bool(cfg.get("show_divider")),
+                    show_divider=bool(config.get("show_divider")),
                 )
 
             sys.exit(result.returncode)
@@ -176,13 +176,13 @@ def main() -> None:
     file_name_q: str = shlex.quote(file.name)
     file_stem_q: str = shlex.quote(file.stem)
 
-    out_path: Path = get_out_path(file, temp_dir=cfg.get("temp_dir"))
+    out_path: Path = get_out_path(file, temp_dir=config.get("temp_dir"))
     out_stem_path: Path = out_path.with_suffix("")
     out_q: str = shlex.quote(str(out_path))
     out_stem_q: str = shlex.quote(str(out_stem_path))
 
     cwd_arg: str | None = None
-    if cfg.get("cd_to_file_dir"):
+    if config.get("cd_to_file_dir"):
         cwd_arg = str(file.parent.resolve())
 
     compile_tmpl = template.get("compile", "") if isinstance(template, dict) else ""
@@ -217,12 +217,12 @@ def main() -> None:
 
         if compile_result.returncode != 0:
             if (
-                cfg.get("show_time_took")
-                or cfg.get("show_command")
-                or cfg.get("show_shell")
+                config.get("show_time_took")
+                or config.get("show_command")
+                or config.get("show_shell")
             ):
                 shell_path = None
-                if cfg.get("show_shell"):
+                if config.get("show_shell"):
                     raw_shell = (
                         resolved_shell
                         if resolved_shell is not None
@@ -237,11 +237,13 @@ def main() -> None:
                 logger.footer(
                     "Failed to Compile",
                     succeeded=False,
-                    elapsed_time=compile_elapsed if cfg.get("show_time_took") else None,
+                    elapsed_time=compile_elapsed
+                    if config.get("show_time_took")
+                    else None,
                     exit_code=compile_result.returncode,
-                    cmd=compile_display_cmd if cfg.get("show_command") else None,
+                    cmd=compile_display_cmd if config.get("show_command") else None,
                     shell_cmd=shell_path,
-                    show_divider=bool(cfg.get("show_divider")),
+                    show_divider=bool(config.get("show_divider")),
                 )
 
             sys.exit(compile_result.returncode)
@@ -255,22 +257,22 @@ def main() -> None:
             run_cmd_str += " " + shlex.join(extra_args)
             run_display_cmd += " " + shlex.join(extra_args)
 
-        if cfg.get("clear_terminal"):
+        if config.get("clear_terminal"):
             os.system("cls" if os.name == "nt" else "clear")
 
         exit_code = run_cmd(
             run_cmd_str,
             shell=resolved_shell,
-            show_time=bool(cfg.get("show_time_took")),
-            show_command=bool(cfg.get("show_command")),
+            show_time=bool(config.get("show_time_took")),
+            show_command=bool(config.get("show_command")),
             display_cmd=run_display_cmd,
             cwd=cwd_arg,
-            show_shell=bool(cfg.get("show_shell")),
-            show_divider=bool(cfg.get("show_divider")),
+            show_shell=bool(config.get("show_shell")),
+            show_divider=bool(config.get("show_divider")),
         )
 
     # Clean up temporary compiled binary and related artifacts if configured to do so
-    if not cfg.get("keep_artifacts"):
+    if not config.get("keep_artifacts"):
         try:
             parent_dir: Path = out_path.parent
             stem = out_path.stem

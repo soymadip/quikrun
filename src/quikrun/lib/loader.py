@@ -14,7 +14,7 @@ import tomllib
 from pathlib import Path
 from typing import Any
 
-from .templates import CMD_TEMPLATES
+from ..metadata import CONFIG_METADATA
 
 
 def xdg_config_home() -> Path:
@@ -82,24 +82,19 @@ def deep_merge(base: dict[str, Any], override: dict[str, Any]) -> dict[str, Any]
 # ---------------- Public API ---------------
 
 
-def load() -> dict[str, Any]:
+def load_conf() -> dict[str, Any]:
     """Return the fully merged configuration (settings + command templates).
 
     Cascading priority: Built-in < User-level < Project-level
     """
     # Defaults
-    default_conf: dict[str, Any] = {
-        "shell": None,
-        "clear_terminal": True,
-        "show_time_took": True,
-        "show_command": True,
-        "show_shell": True,
-        "show_divider": True,
-        "temp_dir": None,
-        "cd_to_file_dir": False,
-        "keep_artifacts": False,
-        "commands": CMD_TEMPLATES.copy(),
-    }
+    default_conf: dict[str, Any] = {}
+    for key, meta in CONFIG_METADATA.items():
+        val = meta["default"]
+        if isinstance(val, dict):
+            default_conf[key] = val.copy()
+        else:
+            default_conf[key] = val
 
     # 2. User-level: ~/.config/quikrun/config.toml
     user_conf: dict[str, Any] = _read_toml(

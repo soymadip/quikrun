@@ -1,0 +1,100 @@
+name: Sync Schema to SchemaStore
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync-schema:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout quikrun
+        uses: actions/checkout@v6
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.1.0
+
+      - name: Generate Schema
+        run: uv run src/scripts/generate_schema.py
+
+      - name: Check for changes
+        id: check
+        run: |
+          uv run python -c "
+          import json, urllib.request, sys, os
+          with open('quikrun.json') as f: local = json.load(f)
+          try:
+              req = urllib.request.Request('https://raw.githubusercontent.com/SchemaStore/SchemaStore/master/src/schemas/json/quikrun.json')
+              with urllib.request.urlopen(req) as r: remote = json.load(r)
+          except Exception:
+              remote = {}
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+              if local == remote:
+                  print('Schema is structurally identical to upstream. Exiting early.')
+                  fh.write('changed=false\n')
+              else:
+                  print('Schema changed!')
+                  fh.write('changed=true\n')
+          "
+
+      - name: Setup Bun
+        if: steps.check.outputs.changed == 'true'
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Clone SchemaStore
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          git clone https://github.com/SchemaStore/SchemaStore.git schemastore
+          cd schemastore
+          bun install
+
+      - name: Copy updated schema
+        if: steps.check.outputs.changed == 'true'
+        run: |
+          cp quikrun.json schemastore/src/schemas/json/quikrun.json
+
+      - name: Format and Validate
+        if: steps.check.outputs.changed == 'true'
+        working-directory: ./schemastore
+        run: |
+          uvx pre-commit run --files src/schemas/json/quikrun.json || true
+          bun cli.js check --schema-name=quikrun.json
+
+      - name: Commit and Push to Fork
+        if: steps.check.outputs.changed == 'true'
+        working-directory: ./schemastore
+        env:
+          GH_TOKEN: ${{ secrets.SCHEMASTORE_SYNC_PAT }}
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Add fork remote using the PAT for authentication
+          git remote add fork https://x-access-token:${{ secrets.SCHEMASTORE_SYNC_PAT }}@github.com/mydehq/SchemaStore.git
+
+          BRANCH_NAME="update-quikrun-schema-${{ github.sha }}"
+          git checkout -b $BRANCH_NAME
+          git add src/schemas/json/quikrun.json
+
+          if git diff --staged --quiet; then
+            echo "No schema changes detected after formatting. Skipping PR creation."
+            exit 0
+          fi
+
+          git commit -m "Update quikrun schema to match latest config changes"
+          git push fork $BRANCH_NAME
+
+          # Create Pull Request on the upstream SchemaStore repo using GitHub CLI
+          gh pr create \
+            --repo SchemaStore/SchemaStore \
+            --title "Update quikrun configuration schema" \
+            --body "Automatically synced schema changes from the quikrun repository." \
+            --head "mydehq:$BRANCH_NAME" \
+            --base "master"
