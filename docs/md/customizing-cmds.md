@@ -13,7 +13,7 @@ ext = "your-cmd {file}" # Register new .ext file
 py = "python3 {file}"
 
 # using Cargo.toml
-[tool.quikrun.commands]
+[package.metadata.quikrun.commands]
 py = "python3 {file}"
 ```
 
