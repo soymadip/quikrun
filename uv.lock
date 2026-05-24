@@ -4,5 +4,5 @@ requires-python = ">=3.13"
 
 [[package]]
 name = "quikrun"
-version = "2.0.2"
+version = "2.1.0"
 source = { editable = "." }

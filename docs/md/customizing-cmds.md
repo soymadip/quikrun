@@ -30,9 +30,9 @@ Templates use these placeholders (shell-quoted):
 | `{out}`       | absolute path to the compiled binary (compiled langs only)                       |
 | `{out_stem}`  | absolute path to the compiled binary without its extension (compiled langs only) |
 
-## Cross platform/Shell commands
+## Cross Platform/Shell Commands
 
-if a same command is valid across all platforms/shells, it can be defined using a flag string:
+If a same command is valid across all platforms/shells, it can be defined using a flag string:
 
 ```toml
 [commands]
@@ -44,48 +44,94 @@ c = { compile = "gcc -Wall -Wextra {file} -o {out}", run = "{out}" }  # ran on a
 
 There are different shells and OSs, You can define which command runs on which shell and OS.
 
-- **Shell Families:** `posix` (bash, zsh, sh), `cmd` (Windows CMD), `pwsh` (PowerShell Core).
+- **Shell Families:** `posix` (bash, zsh, sh), `cmd` (Windows CMD), `pwsh` (PowerShell Core or 7+).
 - **OS Platforms:** `linux`, `darwin`, `win`.
+
+### Shell Family Specific
+
+Used if a specific shell requires unique syntax (e.g. setting environment variables differently)
+
+> [!WARNING]
+> although for examples we use line breaks for readability, TOML requires inline tables to be defined on a single line
 
 ```toml
 [commands]
-
-# Shell-Family specific configuration
-# Used if a specific shell requires unique syntax (e.g. setting environment variables differently)
 foo = {
-    posix = "ENV_VAR=1 foo {file}",       # runs on bash/zsh/sh...   on any OS
-    pwsh =  "$env:ENV_VAR=1; foo {file}", # runs on PowerShell Core  on any OS
-    cmd =   "set ENV_VAR=1& foo {file}",  # runs on Windows CMD      on any OS
+    posix = "ENV_VAR=1 foo {file}",       # runs on bash/zsh...   on any OS
+    pwsh =  "$env:ENV_VAR=1; foo {file}", # runs on PowerShell 7+ on any OS
+    cmd =   "set ENV_VAR=1& foo {file}",  # runs on Windows CMD   on any OS
 }
+```
 
-# OS Platform specific configuration (nested inside the Shell Family)
-# Used when the executable name differs across operating systems
+### OS Platform Specific
+
+Used when the executable name differs across operating systems
+
+```toml
+[commands]
 foo = {
-    posix = {
-        linux = "foo-linux {file}",  # runs on bash/zsh/sh... on Linux
-        darwin = "foo-mac {file}",   # runs on bash/zsh/sh... on macOS
-        win = "foo-win {file}",      # runs on bash/zsh/sh... on Windows
+   posix = {
+       linux = "foo-linux {file}",  # runs on bash/zsh... on Linux
+       darwin = "foo-mac {file}",   # runs on bash/zsh... on macOS
+       win = "foo-win {file}",      # runs on bash/zsh... on Windows
     },
-    pwsh = "foo-win {file}",   # runs on PowerShell Core  on any OS
-    cmd = "foo-win {file}",    # runs on Windows CMD      on any OS
+    pwsh = "foo-win {file}",  # runs on PowerShell 7+ on any OS
+    cmd = "foo-win {file}",   # runs on Windows CMD   on any OS
+}
+```
+
+## Command Array
+
+quikrun will automatically pick the first command installed on your system!
+
+```toml
+[commands]
+js = ["bun run {file}", "deno run {file}", "node {file}"]
+```
+
+## Split Compile & Run
+
+For Compiled languages, it's recommended to define compile & run commands separately, this helps measuring execution time correctly.
+
+```toml
+[commands]
+go = {
+  compile = "go build -o {out} {file}",
+  run = "{out}",
+}
+```
+
+### Shell/Platform Specific
+
+You can nest compile-run tables under shell or operating systems (inside shell families) as well.
+
+```toml
+[commands]
+cpp = {
+  posix = {
+    linux = { compile = "g++ -Wall {file} -o {out}", run = "{out}" },       # runs on bash/zsh... on Linux
+    darwin = { compile = "clang++ -Wall {file} -o {out}", run = "{out}" },  # runs on bash/zsh... on macOS
+  }
 }
 
-# Command array (smart fallback)
-# quikrun will automatically pick the first command installed on your system!
-js = ["bun run {file}", "deno run {file}", "node {file}"]
+```
 
+## Command Inheritance
 
-# Platform-Specific Split Compile & Run
-# You can nest compile-run tables under operating systems (inside shell families) as well.
-cpp = { posix = { linux = { compile = "g++ -Wall {file} -o {out}", run = "{out}" }, darwin = { compile = "clang++ -Wall {file} -o {out}", run = "{out}" } } }
+Use the `@` prefix to inherit a configuration from an already defined command template!
 
-# Command Inheritance
-# Use the @ prefix to inherit a configuration from an already defined command template!
+```toml
+[commands]
 cxx = "@cpp"
 jsx = "@js"
+```
 
-# Extending Inheritance
-# Inherit commands from an runner and add more
+### Extending Inheritance
+
+Your can also inherit commands from an template and add more
+
+```toml
+[commands]
 js = ["bun run {file}", "deno run {file}", "node {file}"]
 ts = ["@js", "tsc {file}"]
 ```
