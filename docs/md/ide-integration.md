@@ -16,7 +16,7 @@ Create or edit your `.zed/tasks.json` in your project root (or open your global 
 [
   {
     "label": "Run Current File",
-    "command": "quikrun ${ZED_FILE}",
+    "command": "quikrun '${ZED_FILE}'",
     "save": "current",
     "use_new_terminal": false,
     "allow_concurrent_runs": true,
@@ -107,7 +107,7 @@ You can configure `quikrun` as an **External Tool** inside JetBrains IDEs, which
 4. Fill in the fields:
    - **Name**: `Quikrun`
    - **Program**: `quikrun` _(or the path to your `quikrun` executable if it is not in your global PATH)_
-   - **Arguments**: `$FilePath$`
+   - **Arguments**: `"$FilePath$"`
    - **Working directory**: `$ProjectFileDir$`
 5. Click **OK** to save.
 
@@ -130,7 +130,7 @@ Add the following keymap to write the current file and execute `quikrun` inside 
 -- Save and run current file with quikrun in a horizontal terminal split
 vim.keymap.set('n', '<C-A-n>', function()
   vim.cmd('write')
-  vim.cmd('split | term quikrun ' .. vim.fn.expand('%'))
+  vim.cmd('split | term quikrun ' .. vim.fn.shellescape(vim.fn.expand('%:p')))
 end, { desc = 'Run Current File' })
 ```
 
@@ -138,7 +138,7 @@ end, { desc = 'Run Current File' })
 
 ```vim
 " Save and run current file in a horizontal split terminal
-nnoremap <C-A-n> :w<CR>:split term://quikrun %<CR>
+nnoremap <C-A-n> :w<CR>:split term://quikrun %:S<CR>
 
 ```
 

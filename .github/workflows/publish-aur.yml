@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - 'PKGBUILD'
+      - "PKGBUILD"
   workflow_dispatch:
 
 concurrency:
@@ -27,7 +27,7 @@ jobs:
       (github.event_name == 'push' && github.ref_type == 'branch' && !startsWith(github.event.head_commit.message, 'chore(release):'))
     environment:
       name: aur
-      url:  "https://aur.archlinux.org/packages/${{ github.event.repository.name }}"
+      url: "https://aur.archlinux.org/packages/${{ github.event.repository.name }}"
 
     steps:
       - name: Checkout repository
@@ -43,7 +43,7 @@ jobs:
 
           # Source the PKGBUILD to get the updated version and release directly
           source PKGBUILD
-          
+
           echo "VERSION=$pkgver" >> "$GITHUB_ENV"
           echo "PKGREL=$pkgrel" >> "$GITHUB_ENV"
 
@@ -52,11 +52,11 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "Waiting for version ${{ env.VERSION }} to be published..."
-          
+
           # Try to find a matching workflow run for 'Publish to PyPI'
           RUN_INFO=$(gh run list --workflow "Publish to PyPI" --commit "${{ github.sha }}" --json status,conclusion,url --limit 1 2>/dev/null || true)
           STATUS=$(echo "$RUN_INFO" | jq -r '.[0].status // empty')
-          
+
           if [[ -n "$STATUS" ]]; then
             echo "Found active 'Publish to PyPI' workflow run."
             for i in {1..30}; do
@@ -84,7 +84,7 @@ jobs:
           # Fallback / Double-check: Poll the public PyPI registry to ensure package is fully indexable
           echo "Verifying availability on PyPI registry..."
           sleep 5
-          
+
           for i in {1..30}; do
             CURRENT_VERSION=$(curl -s "https://pypi.org/pypi/${{ env.REPO_NAME }}/json" | jq -r '.info.version // empty')
 

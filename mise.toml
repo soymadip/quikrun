@@ -1,4 +1,5 @@
 [tools]
+"npm:prettier" = "latest"
 "pipx:commitizen" = "latest"
 ruff = "latest"
 uv = "latest"
@@ -12,8 +13,8 @@ commit = "cz --config $CZ_CONFIG commit"
 changelog = "cz --config $CZ_CONFIG changelog"
 
 [tasks.format]
-description = "Format code layout using Ruff (Prettier style)"
-run = "ruff format"
+description = "Format code layout"
+run = "prettier --write ."
 
 [tasks.lint]
 description = "Lint and auto-fix code quality issues using Ruff"
