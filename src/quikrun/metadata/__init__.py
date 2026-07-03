@@ -67,6 +67,24 @@ CONFIG_METADATA: dict[str, dict[str, Any]] = {
         "default": False,
         "description": "Keep generated binaries or temporary files after execution",
     },
+    "auto_close": {
+        "default": "never",
+        "description": "Controls closing behavior after execution",
+        "schema": {
+            "anyOf": [
+                {
+                    "type": "string",
+                    "enum": ["always", "never", "on_success"],
+                    "description": "always: close immediately, never: wait for Enter, on_success: close only on success",
+                },
+                {
+                    "type": "number",
+                    "minimum": 0,
+                    "description": "Auto-close delay in seconds before exit (for example: 1, 2.5).",
+                },
+            ],
+        },
+    },
     "commands": {
         "default": cmd_templates,
         "description": "Command Templates by file extension",

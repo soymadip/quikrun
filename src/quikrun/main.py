@@ -52,6 +52,48 @@ def main() -> None:
 
     config: dict[str, Any] = loader.load_conf()
     cmd_templates: dict[str, Any] = config.get("commands", {})
+    auto_close_raw: Any = config.get("auto_close", "never")
+    auto_close_delay: float | None = None
+    auto_close_mode: str = "never"
+    valid_auto_close_modes = {"always", "never", "on_success"}
+
+    if isinstance(auto_close_raw, str):
+        auto_close_mode = auto_close_raw.strip().lower()
+        if auto_close_mode not in valid_auto_close_modes:
+            logger.error(
+                "Invalid value for 'auto_close'. Expected 'always', 'never', 'on_success', or a non-negative number of seconds."
+            )
+            sys.exit(1)
+    elif isinstance(auto_close_raw, (int, float)) and not isinstance(auto_close_raw, bool):
+        auto_close_delay = float(auto_close_raw)
+        if auto_close_delay < 0:
+            logger.error(
+                "Invalid value for 'auto_close'. Delay seconds must be a non-negative number."
+            )
+            sys.exit(1)
+    else:
+        logger.error(
+            "Invalid value for 'auto_close'. Expected 'always', 'never', 'on_success', or a non-negative number of seconds."
+        )
+        sys.exit(1)
+
+    def pause_before_exit(exit_code: int) -> None:
+        if auto_close_delay is not None:
+            if auto_close_delay > 0 and sys.stdin.isatty():
+                time.sleep(auto_close_delay)
+            return
+
+        should_auto_close = auto_close_mode == "always" or (
+            auto_close_mode == "on_success" and exit_code == 0
+        )
+        if should_auto_close or not sys.stdin.isatty():
+            return
+
+        print()
+        try:
+            input("Press Enter to exit...")
+        except (EOFError, KeyboardInterrupt):
+            print()
 
     if sys.platform.startswith("win"):
         platform_key = "win"
@@ -122,6 +164,7 @@ def main() -> None:
                     show_divider=bool(config.get("show_divider")),
                 )
 
+            pause_before_exit(result.returncode)
             sys.exit(result.returncode)
 
     # ---------------- Extension lookup ---------------
@@ -246,6 +289,7 @@ def main() -> None:
                     show_divider=bool(config.get("show_divider")),
                 )
 
+            pause_before_exit(compile_result.returncode)
             sys.exit(compile_result.returncode)
 
     exit_code = 0
@@ -293,6 +337,7 @@ def main() -> None:
         except Exception:
             pass
 
+    pause_before_exit(exit_code)
     sys.exit(exit_code)
 
 

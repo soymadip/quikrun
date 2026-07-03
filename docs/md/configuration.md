@@ -109,17 +109,18 @@ Add a `"quikrun"` key containing a `"commands"` block to your `package.json`:
 
 The following root-level settings are supported in all configuration files:
 
-| Setting              | Type         | Default | Description                                                                                                                          |
-| :------------------- | :----------- | :------ | :----------------------------------------------------------------------------------------------------------------------------------- |
-| **`clear_terminal`** | boolean      | `true`  | Clears the terminal before executing the code file.                                                                                  |
-| **`show_time_took`** | boolean      | `true`  | Shows the execution duration of the command after it exits.                                                                          |
-| **`show_command`**   | boolean      | `true`  | Shows the command being executed.                                                                                                    |
-| **`show_shell`**     | boolean      | `true`  | Shows the shell command/path.                                                                                                        |
-| **`show_divider`**   | boolean      | `true`  | Draws a horizontal execution divider line before the footer.                                                                         |
-| **`temp_dir`**       | string       | `null`  | Absolute/Relative path to a custom directory where binaries are compiled. Supports env vars (like `$HOME`) & tilde (`~`) expansions. |
-| **`cd_to_file_dir`** | boolean      | `false` | Changes the working directory (`cwd`) to the directory containing the source file before running.                                    |
-| **`keep_artifacts`** | boolean      | `false` | If `true`, keeps the compiled binaries and output directories after execution. If `false`, these are automatically cleaned up.       |
-| **`shell`**          | string/table | `null`  | Allows overriding the shell used to run the commands. More info below                                                                |
+| Setting              | Type      | Default   | Description                                                                                                                                                                                                                     |
+| :------------------- | :-------- | :-------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| **`clear_terminal`** | bool      | `true`    | Clears the terminal before executing the code file.                                                                                                                                                                             |
+| **`auto_close`**     | str/num   | `"never"` | - `"always"` closes immediately after execution<br/>- `"never"` waits for Enter keypress<br/>- `"on_success"` closes only when exit code is 0<br/>- Any non-negative number (e.g. `2.5`) to auto-close after that many seconds. |
+| **`show_time_took`** | bool      | `true`    | Shows the execution duration of the command after it exits.                                                                                                                                                                     |
+| **`show_command`**   | bool      | `true`    | Shows the command being executed.                                                                                                                                                                                               |
+| **`show_shell`**     | bool      | `true`    | Shows the shell command/path.                                                                                                                                                                                                   |
+| **`show_divider`**   | bool      | `true`    | Draws a horizontal execution divider line before the footer.                                                                                                                                                                    |
+| **`temp_dir`**       | str       | `null`    | Absolute/Relative path to a custom directory where binaries are compiled. Supports env vars (like `$HOME`) & tilde (`~`) expansions.                                                                                            |
+| **`cd_to_file_dir`** | bool      | `false`   | Changes the working directory (`cwd`) to the directory containing the source file before running.                                                                                                                               |
+| **`keep_artifacts`** | bool      | `false`   | - `true`, keeps the compiled binaries and output directories after execution. <br/>- `false`, these are automatically cleaned up.                                                                                               |
+| **`shell`**          | str/table | `null`    | Allows overriding the shell used to run the commands. More info below                                                                                                                                                           |
 
 ## Supported Shells
 
