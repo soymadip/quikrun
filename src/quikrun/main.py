@@ -91,7 +91,7 @@ def main() -> None:
 
         print()
         try:
-            input("Press Enter to exit...")
+            input(logger.fmt("Press Enter to exit...", logger._GRAY))
         except (EOFError, KeyboardInterrupt):
             print()
 
