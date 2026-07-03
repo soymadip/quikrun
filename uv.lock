@@ -68,11 +68,12 @@ name = "quikrun"
 version = "2.2.0"
 source = { editable = "." }
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "pytest" },
 ]
 
 [package.metadata]
-requires-dist = [{ name = "pytest", marker = "extra == 'dev'", specifier = ">=9.0" }]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [{ name = "pytest", specifier = ">=9.1.1" }]

@@ -10,8 +10,10 @@ authors = [{ name = "Soumadip Das", email = "soumadip@zohomail.in" }]
 requires-python = ">=3.13"
 dependencies = []
 
-[project.optional-dependencies]
-dev = ["pytest>=9.0"]
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
 
 [project.urls]
 Homepage = "https://github.com/soymadip/quikrun"
