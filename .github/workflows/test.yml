@@ -17,7 +17,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     container:
-      image: ${{ env.IMAGE }}
+      image: ghcr.io/astral-sh/uv:latest-python3.13-trixie-slim
     steps:
       - name: Checkout
         uses: actions/checkout@v6
