@@ -19,8 +19,12 @@ Create or edit your `.zed/tasks.json` in your project root (or open your global 
     "command": "quikrun '${ZED_FILE}'",
     "save": "current",
     "use_new_terminal": false,
-    "allow_concurrent_runs": true,
+    "allow_concurrent_runs": false,
     "reveal": "always"
+    "reveal_target": "dock"
+    "hide": "on_success",
+    "show_summary": false,
+    "show_command": false,
   }
 ]
 ```
