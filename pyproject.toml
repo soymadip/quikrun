@@ -10,9 +10,12 @@ authors = [{ name = "Soumadip Das", email = "soumadip@zohomail.in" }]
 requires-python = ">=3.13"
 dependencies = []
 
+[project.optional-dependencies]
+dev = ["pytest>=9.0"]
+
 [project.urls]
-Homepage = "https://gitlab.com/soymadip/quikrun"
-Repository = "https://gitlab.com/soymadip/quikrun"
+Homepage = "https://github.com/soymadip/quikrun"
+Repository = "https://github.com/soymadip/quikrun"
 
 [project.scripts]
 quikrun = "quikrun.main:main"  # the command quikrun should call the main function inside quikrun/main.py . The src/ part is invisible to Python — uv/pip adds src/ to the Python path automatically during install, so Python sees quikrun directly, not src.quikrun
