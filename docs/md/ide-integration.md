@@ -22,7 +22,7 @@ Create or edit your `.zed/tasks.json` in your project root (or open your global 
     "allow_concurrent_runs": false,
     "reveal": "always"
     "reveal_target": "dock"
-    "hide": "on_success",
+    "hide": "always",
     "show_summary": false,
     "show_command": false,
   }
@@ -78,6 +78,7 @@ You can configure VS Code tasks to run the currently focused file.
         "panel": "shared",
         "showReuseMessage": false,
         "focus": true
+        "close": true
       },
       "problemMatcher": []
     }
