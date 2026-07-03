@@ -24,9 +24,9 @@ Templates use these placeholders (shell-quoted):
 | Placeholder   | Value                                                                            |
 | ------------- | -------------------------------------------------------------------------------- |
 | `{file}`      | absolute path to the source file                                                 |
-| `{file_stem}` | filename without its extension (e.g. `main`)                                     |
 | `{file_dir}`  | directory path containing the source file                                        |
 | `{file_name}` | name of the source file (e.g. `main.py`)                                         |
+| `{file_stem}` | filename without its extension (e.g. `main`)                                     |
 | `{out}`       | absolute path to the compiled binary (compiled langs only)                       |
 | `{out_stem}`  | absolute path to the compiled binary without its extension (compiled langs only) |
 
