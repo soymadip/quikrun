@@ -6,6 +6,7 @@ uv = "latest"
 
 [env]
 CZ_CONFIG = 'src/cz/cz.yaml'
+UV_LINK_MODE = 'copy'
 
 [tasks]
 bump = "cz --config $CZ_CONFIG  bump"
