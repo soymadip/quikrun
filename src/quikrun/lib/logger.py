@@ -60,12 +60,12 @@ def footer(
 
     print(fmt(f"⏵ {msg}", color) + exit_str + time_str)
 
-    if shell_cmd:
-        print(fmt("⏵ Shell: ", _CYAN) + fmt(shell_cmd, _GRAY))
-
     if cmd:
-        prefix = "⏵ Command (shebang): " if shebang else "⏵ Command: "
-        print(fmt(prefix, _CYAN) + fmt(cmd, _GRAY))
+        via_str = f" [via {shell_cmd}]" if shell_cmd else ""
+        prefix = "⏵ Command [shebang]: " if shebang else "⏵ Command: "
+        print(fmt(prefix, _CYAN) + fmt(cmd, _GRAY) + fmt(via_str, _GRAY))
+    elif shell_cmd:
+        print(fmt("⏵ Shell: ", _CYAN) + fmt(shell_cmd, _GRAY))
 
 
 def info(msg: str) -> None:

@@ -263,6 +263,8 @@ def main() -> None:
             file_stem=file_stem_q,
         )
 
+    compile_display_cmd = ""
+
     if compile_tmpl:
         logger.info(f"Compiling {file.name}...")
         compile_cmd = format_cmd(compile_tmpl)
@@ -325,8 +327,8 @@ def main() -> None:
         if config.get("clear_terminal"):
             os.system("cls" if os.name == "nt" else "clear")
 
-        if compile_tmpl and config.get("show_divider") and sys.stdout.isatty():
-            print(logger.fmt("-" * 43, logger._GRAY))
+        if compile_tmpl:
+            run_display_cmd = f"{compile_display_cmd} && {run_display_cmd}"
 
         exit_code = run_cmd(
             run_cmd_str,
