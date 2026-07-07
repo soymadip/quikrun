@@ -144,7 +144,7 @@ wheels = [
 
 [[package]]
 name = "quikrun"
-version = "2.2.1"
+version = "2.2.3"
 source = { editable = "." }
 
 [package.dev-dependencies]

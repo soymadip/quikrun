@@ -1,5 +1,5 @@
 name: Update Packages
-run-name: "Publish Packages: ${{ github.ref_name }}"
+run-name: "Publish Packages: ${{ github.event.workflow_run.head_branch || github.ref_name }}"
 
 on:
   workflow_run:
