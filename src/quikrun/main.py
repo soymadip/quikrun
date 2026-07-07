@@ -109,9 +109,8 @@ def main() -> None:
         if should_auto_close or not sys.stdin.isatty():
             return
 
-        print()
         try:
-            input(logger.fmt("Press Enter to exit...", logger._GRAY))
+            input(logger.fmt("⏵ Press Enter to exit...", logger._GRAY))
         except (EOFError, KeyboardInterrupt):
             print()
 
