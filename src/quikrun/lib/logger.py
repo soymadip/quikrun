@@ -45,7 +45,7 @@ def footer(
     """Print the execution footer divider and exit status."""
 
     if show_divider and _tty():
-        print(fmt("-" * 43, _GRAY))
+        print(fmt("-" * 48, _GRAY))
 
     time_str = (
         fmt(f" [took {elapsed_time:.3f}s]", _GRAY) if elapsed_time is not None else ""

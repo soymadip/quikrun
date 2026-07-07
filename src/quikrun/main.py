@@ -347,7 +347,7 @@ def main() -> None:
                 os.system("cls" if os.name == "nt" else "clear")
 
             if compile_tmpl and config.get("show_divider") and sys.stdout.isatty():
-                print(logger.fmt("-" * 43, logger._GRAY))
+                print(logger.fmt("-" * 20 + " Output " + "-" * 20, logger._GRAY))
 
             if compile_tmpl:
                 run_display_cmd = f"{compile_display_cmd} && {run_display_cmd}"
