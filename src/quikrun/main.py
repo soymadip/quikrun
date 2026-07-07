@@ -36,354 +36,361 @@ def was_console_spawned() -> bool:
 
 
 def main() -> None:
-
-    if sys.stdout.isatty():
-        print()
-
-    # No arguments given
-    if len(sys.argv) == 1:
-        arg_parser().print_help()
-        if was_console_spawned():
+    try:
+        if sys.stdout.isatty():
             print()
-            try:
-                input("\nPress Enter to exit...")
-            except (EOFError, KeyboardInterrupt):
-                pass
-        sys.exit(0)
 
-    parser: ArgumentParser = arg_parser()
-    args: Namespace
-    extra_args: list[str]
-    args, extra_args = parser.parse_known_args()
+        # No arguments given
+        if len(sys.argv) == 1:
+            arg_parser().print_help()
+            if was_console_spawned():
+                print()
+                try:
+                    input("\nPress Enter to exit...")
+                except (EOFError, KeyboardInterrupt):
+                    pass
+            sys.exit(0)
 
-    file: Path = Path(args.file.strip())
+        parser: ArgumentParser = arg_parser()
+        args: Namespace
+        extra_args: list[str]
+        args, extra_args = parser.parse_known_args()
 
-    # ---------------- Validation ---------------
+        file: Path = Path(args.file.strip())
 
-    if not file.exists():
-        logger.error(f"File not found: '{file}'")
-        sys.exit(1)
+        # ---------------- Validation ---------------
 
-    if not file.is_file():
-        logger.error(f"'Not a file: '{file}'")
-        sys.exit(1)
+        if not file.exists():
+            logger.error(f"File not found: '{file}'")
+            sys.exit(1)
 
-    # ---------------- Load Configuration ---------------
+        if not file.is_file():
+            logger.error(f"'Not a file: '{file}'")
+            sys.exit(1)
 
-    config: dict[str, Any] = loader.load_conf()
-    cmd_templates: dict[str, Any] = config.get("commands", {})
-    auto_close_raw: Any = config.get("auto_close", "never")
-    auto_close_delay: float | None = None
-    auto_close_mode: str = "never"
-    valid_auto_close_modes = {"always", "never", "on_success"}
+        # ---------------- Load Configuration ---------------
 
-    if isinstance(auto_close_raw, str):
-        auto_close_mode = auto_close_raw.strip().lower()
-        if auto_close_mode not in valid_auto_close_modes:
+        config: dict[str, Any] = loader.load_conf()
+        cmd_templates: dict[str, Any] = config.get("commands", {})
+        auto_close_raw: Any = config.get("auto_close", "never")
+        auto_close_delay: float | None = None
+        auto_close_mode: str = "never"
+        valid_auto_close_modes = {"always", "never", "on_success"}
+
+        if isinstance(auto_close_raw, str):
+            auto_close_mode = auto_close_raw.strip().lower()
+            if auto_close_mode not in valid_auto_close_modes:
+                logger.error(
+                    "Invalid value for 'auto_close'. Expected 'always', 'never', 'on_success', or a non-negative number of seconds."
+                )
+                sys.exit(1)
+        elif isinstance(auto_close_raw, (int, float)) and not isinstance(auto_close_raw, bool):
+            auto_close_delay = float(auto_close_raw)
+            if auto_close_delay < 0:
+                logger.error(
+                    "Invalid value for 'auto_close'. Delay seconds must be a non-negative number."
+                )
+                sys.exit(1)
+        else:
             logger.error(
                 "Invalid value for 'auto_close'. Expected 'always', 'never', 'on_success', or a non-negative number of seconds."
             )
             sys.exit(1)
-    elif isinstance(auto_close_raw, (int, float)) and not isinstance(auto_close_raw, bool):
-        auto_close_delay = float(auto_close_raw)
-        if auto_close_delay < 0:
-            logger.error(
-                "Invalid value for 'auto_close'. Delay seconds must be a non-negative number."
+
+        def pause_before_exit(exit_code: int) -> None:
+            if auto_close_delay is not None:
+                if auto_close_delay > 0 and sys.stdin.isatty():
+                    time.sleep(auto_close_delay)
+                return
+
+            should_auto_close = auto_close_mode == "always" or (
+                auto_close_mode == "on_success" and exit_code == 0
+            )
+            if should_auto_close or not sys.stdin.isatty():
+                return
+
+            try:
+                input(logger.fmt("⏵ Press Enter to exit...", logger._GRAY))
+            except (EOFError, KeyboardInterrupt):
+                print()
+
+        if sys.platform.startswith("win"):
+            platform_key = "win"
+        elif sys.platform == "darwin":
+            platform_key = "darwin"
+        else:
+            platform_key = "linux"
+
+        # Resolve custom shell
+        shell_cmd = config.get("shell")
+        resolved_shell: str | None = None
+
+        if shell_cmd is not None:
+            if isinstance(shell_cmd, dict):
+                resolved_shell = shell_cmd.get(platform_key)
+            else:
+                resolved_shell = str(shell_cmd)
+
+        # Determine shell name
+        shell_name: str
+
+        if resolved_shell:
+            shell_path = shutil.which(resolved_shell) or resolved_shell
+            shell_name = os.path.basename(shell_path).lower()
+        elif os.name == "nt":
+            shell_path = os.environ.get("COMSPEC", "cmd.exe")
+            shell_name = os.path.basename(shell_path).lower()
+        else:
+            shell_name = "sh"
+
+        # Determine shell family
+        if any(shell in shell_name for shell in ["bash", "zsh", "dash", "ash", "sh"]):
+            shell_family = "posix"
+        elif "cmd" in shell_name:
+            shell_family = "cmd"
+        elif any(s in shell_name for s in ["pwsh"]):
+            shell_family = "pwsh"
+        else:
+            shell_family = "cmd" if os.name == "nt" else "posix"
+
+        # ---------------- Shebang detected ---------------
+
+        if os.name == "posix":
+            if shebang := detect_shebang(file):
+                if config.get("clear_terminal"):
+                    os.system("cls" if os.name == "nt" else "clear")
+
+                shebang_cmd_list: list[str] = shlex.split(shebang)
+                full_cmd = [*shebang_cmd_list, str(file.resolve()), *extra_args]
+                display_cmd_str = shlex.join([*shebang_cmd_list, str(file), *extra_args])
+
+                start: float = time.perf_counter()
+                result: CompletedProcess = subprocess.run(full_cmd)
+                elapsed: float = time.perf_counter() - start
+
+                if (
+                    config.get("show_time_took")
+                    or config.get("show_command")
+                    or config.get("show_shell")
+                ):
+                    logger.footer(
+                        "Ran Successfully" if result.returncode == 0 else "Failed to Run",
+                        succeeded=(result.returncode == 0),
+                        exit_code=result.returncode,
+                        elapsed_time=elapsed if config.get("show_time_took") else None,
+                        cmd=display_cmd_str if config.get("show_command") else None,
+                        shebang=True,
+                        show_divider=bool(config.get("show_divider")),
+                    )
+
+                pause_before_exit(result.returncode)
+                sys.exit(result.returncode)
+
+        # ---------------- Extension lookup ---------------
+
+        extension: str = file.suffix.lstrip(".")
+
+        if not extension:
+            logger.error(f"'{file}' has no extension nor shebang.")
+            sys.exit(1)
+
+        if extension not in cmd_templates:
+            logger.error(f"Unsupported extension '.{extension}'.")
+            logger.info(
+                "Tip: Add a command template for this extension to your user or project quikrun.toml config."
             )
             sys.exit(1)
-    else:
-        logger.error(
-            "Invalid value for 'auto_close'. Expected 'always', 'never', 'on_success', or a non-negative number of seconds."
-        )
-        sys.exit(1)
 
-    def pause_before_exit(exit_code: int) -> None:
-        if auto_close_delay is not None:
-            if auto_close_delay > 0 and sys.stdin.isatty():
-                time.sleep(auto_close_delay)
-            return
+        raw_template: Any = cmd_templates[extension]
 
-        should_auto_close = auto_close_mode == "always" or (
-            auto_close_mode == "on_success" and exit_code == 0
+        # Recursively resolve and flatten all aliases, dictionaries, and arrays
+        flattened_cmds: list[Any] = resolve_template(
+            raw_template, shell_family, platform_key, cmd_templates
         )
-        if should_auto_close or not sys.stdin.isatty():
-            return
+
+        if not flattened_cmds:
+            logger.error(f"Invalid configuration for extension '.{extension}'.")
+            sys.exit(1)
+
+        # Resolve smart fallbacks by checking which executable is installed
+        template: Any = ""
+        for cmd_tmpl in flattened_cmds:
+            if isinstance(cmd_tmpl, dict):
+                cmd_str = cmd_tmpl.get("compile") or cmd_tmpl.get("run", "")
+            else:
+                cmd_str = cmd_tmpl
+
+            if cmd_str:
+                parts = cmd_str.split()
+                if parts:
+                    executable = parts[0]
+                    if shutil.which(executable) is not None:
+                        template = cmd_tmpl
+                        break
+
+        if not template:
+            template = flattened_cmds[-1]
+
+        file_q: str = shlex.quote(str(file.resolve()))  # absolute — for execution
+        file_rel_q: str = shlex.quote(str(file))  # relative — for display only
+        file_dir_q: str = shlex.quote(str(file.parent.resolve()))
+        file_dir_rel_q: str = shlex.quote(str(file.parent))
+        file_name_q: str = shlex.quote(file.name)
+        file_stem_q: str = shlex.quote(file.stem)
+
+        out_path: Path = get_out_path(file, temp_dir=config.get("temp_dir"))
+        out_stem_path: Path = out_path.with_suffix("")
+        out_q: str = shlex.quote(str(out_path))
+        out_stem_q: str = shlex.quote(str(out_stem_path))
 
         try:
-            input(logger.fmt("⏵ Press Enter to exit...", logger._GRAY))
-        except (EOFError, KeyboardInterrupt):
-            print()
+            out_rel_path = os.path.relpath(out_path, os.getcwd())
+        except ValueError:
+            out_rel_path = str(out_path)
 
-    if sys.platform.startswith("win"):
-        platform_key = "win"
-    elif sys.platform == "darwin":
-        platform_key = "darwin"
-    else:
-        platform_key = "linux"
+        try:
+            out_stem_rel_path = os.path.relpath(out_stem_path, os.getcwd())
+        except ValueError:
+            out_stem_rel_path = str(out_stem_path)
 
-    # Resolve custom shell
-    shell_cmd = config.get("shell")
-    resolved_shell: str | None = None
+        out_rel_q = shlex.quote(out_rel_path)
+        out_stem_rel_q = shlex.quote(out_stem_rel_path)
 
-    if shell_cmd is not None:
-        if isinstance(shell_cmd, dict):
-            resolved_shell = shell_cmd.get(platform_key)
-        else:
-            resolved_shell = str(shell_cmd)
+        # If the relative path has no slashes, prefix with ./ for execution clarity when copy-pasted
+        if "/" not in out_rel_path and "\\" not in out_rel_path and not os.path.isabs(out_rel_path):
+            out_rel_q = f"./{out_rel_q}"
 
-    # Determine shell name
-    shell_name: str
+        if "/" not in out_stem_rel_path and "\\" not in out_stem_rel_path and not os.path.isabs(out_stem_rel_path):
+            out_stem_rel_q = f"./{out_stem_rel_q}"
 
-    if resolved_shell:
-        shell_path = shutil.which(resolved_shell) or resolved_shell
-        shell_name = os.path.basename(shell_path).lower()
-    elif os.name == "nt":
-        shell_path = os.environ.get("COMSPEC", "cmd.exe")
-        shell_name = os.path.basename(shell_path).lower()
-    else:
-        shell_name = "sh"
+        cwd_arg: str | None = None
+        if config.get("cd_to_file_dir"):
+            cwd_arg = str(file.parent.resolve())
 
-    # Determine shell family
-    if any(shell in shell_name for shell in ["bash", "zsh", "dash", "ash", "sh"]):
-        shell_family = "posix"
-    elif "cmd" in shell_name:
-        shell_family = "cmd"
-    elif any(s in shell_name for s in ["pwsh"]):
-        shell_family = "pwsh"
-    else:
-        shell_family = "cmd" if os.name == "nt" else "posix"
+        compile_tmpl = template.get("compile", "") if isinstance(template, dict) else ""
+        run_tmpl = template.get("run", "") if isinstance(template, dict) else template
 
-    # ---------------- Shebang detected ---------------
+        def format_cmd(tmpl: str, for_display: bool = False) -> str:
+            if not tmpl:
+                return ""
+            return tmpl.format(
+                file=file_rel_q if for_display else file_q,
+                out=out_rel_q if for_display else out_q,
+                out_stem=out_stem_rel_q if for_display else out_stem_q,
+                file_dir=file_dir_rel_q if for_display else file_dir_q,
+                file_name=file_name_q,
+                file_stem=file_stem_q,
+            )
 
-    if os.name == "posix":
-        if shebang := detect_shebang(file):
+        compile_display_cmd = ""
+
+        if compile_tmpl:
+            logger.info(f"Compiling {file.name}...")
+            compile_cmd = format_cmd(compile_tmpl)
+            compile_display_cmd = format_cmd(compile_tmpl, for_display=True)
+
+            # Run compile command
+            kwargs: dict[str, Any] = {"shell": True}
+            if resolved_shell is not None:
+                kwargs["executable"] = resolved_shell
+            if cwd_arg is not None:
+                kwargs["cwd"] = cwd_arg
+
+            compile_start: float = time.perf_counter()
+            compile_result = subprocess.run(compile_cmd, **kwargs)
+            compile_elapsed: float = time.perf_counter() - compile_start
+
+            if compile_result.returncode != 0:
+                if (
+                    config.get("show_time_took")
+                    or config.get("show_command")
+                    or config.get("show_shell")
+                ):
+                    shell_path = None
+                    if config.get("show_shell"):
+                        raw_shell = (
+                            resolved_shell
+                            if resolved_shell is not None
+                            else (
+                                os.environ.get("COMSPEC", "cmd.exe")
+                                if os.name == "nt"
+                                else "/bin/sh"
+                            )
+                        )
+                        shell_path = shutil.which(raw_shell) or raw_shell
+
+                    logger.footer(
+                        "Failed to Compile",
+                        succeeded=False,
+                        elapsed_time=compile_elapsed
+                        if config.get("show_time_took")
+                        else None,
+                        exit_code=compile_result.returncode,
+                        cmd=compile_display_cmd if config.get("show_command") else None,
+                        shell_cmd=shell_path,
+                        show_divider=bool(config.get("show_divider")),
+                    )
+
+                pause_before_exit(compile_result.returncode)
+                sys.exit(compile_result.returncode)
+
+        exit_code = 0
+        if run_tmpl:
+            run_cmd_str = format_cmd(run_tmpl)
+            run_display_cmd = format_cmd(run_tmpl, for_display=True)
+
+            if extra_args:
+                run_cmd_str += " " + shlex.join(extra_args)
+                run_display_cmd += " " + shlex.join(extra_args)
+
             if config.get("clear_terminal"):
                 os.system("cls" if os.name == "nt" else "clear")
 
-            shebang_cmd_list: list[str] = shlex.split(shebang)
-            full_cmd = [*shebang_cmd_list, str(file.resolve()), *extra_args]
-            display_cmd_str = shlex.join([*shebang_cmd_list, str(file), *extra_args])
+            if compile_tmpl and config.get("show_divider") and sys.stdout.isatty():
+                print(logger.fmt("-" * 43, logger._GRAY))
 
-            start: float = time.perf_counter()
-            result: CompletedProcess = subprocess.run(full_cmd)
-            elapsed: float = time.perf_counter() - start
+            if compile_tmpl:
+                run_display_cmd = f"{compile_display_cmd} && {run_display_cmd}"
 
-            if (
-                config.get("show_time_took")
-                or config.get("show_command")
-                or config.get("show_shell")
-            ):
-                logger.footer(
-                    "Ran Successfully" if result.returncode == 0 else "Failed to Run",
-                    succeeded=(result.returncode == 0),
-                    exit_code=result.returncode,
-                    elapsed_time=elapsed if config.get("show_time_took") else None,
-                    cmd=display_cmd_str if config.get("show_command") else None,
-                    shebang=True,
-                    show_divider=bool(config.get("show_divider")),
-                )
+            exit_code = run_cmd(
+                run_cmd_str,
+                shell=resolved_shell,
+                show_time=bool(config.get("show_time_took")),
+                show_command=bool(config.get("show_command")),
+                display_cmd=run_display_cmd,
+                cwd=cwd_arg,
+                show_shell=bool(config.get("show_shell")),
+                show_divider=bool(config.get("show_divider")),
+            )
 
-            pause_before_exit(result.returncode)
-            sys.exit(result.returncode)
+        # Clean up temporary compiled binary and related artifacts if configured to do so
+        if not config.get("keep_artifacts"):
+            try:
+                parent_dir: Path = out_path.parent
+                stem = out_path.stem
 
-    # ---------------- Extension lookup ---------------
+                if parent_dir.exists() and parent_dir.is_dir():
+                    for item in parent_dir.iterdir():
+                        if item.stem == stem or item.name.startswith(stem + "."):
+                            if item.is_file():
+                                item.unlink()
+                            elif item.is_dir():
+                                shutil.rmtree(item)
 
-    extension: str = file.suffix.lstrip(".")
+                # Remove parent directory if it is empty
+                if parent_dir.exists() and parent_dir.is_dir():
+                    if not any(parent_dir.iterdir()):
+                        parent_dir.rmdir()
 
-    if not extension:
-        logger.error(f"'{file}' has no extension nor shebang.")
-        sys.exit(1)
+            except Exception:
+                pass
 
-    if extension not in cmd_templates:
-        logger.error(f"Unsupported extension '.{extension}'.")
-        logger.info(
-            "Tip: Add a command template for this extension to your user or project quikrun.toml config."
-        )
-        sys.exit(1)
+        pause_before_exit(exit_code)
+        sys.exit(exit_code)
 
-    raw_template: Any = cmd_templates[extension]
-
-    # Recursively resolve and flatten all aliases, dictionaries, and arrays
-    flattened_cmds: list[Any] = resolve_template(
-        raw_template, shell_family, platform_key, cmd_templates
-    )
-
-    if not flattened_cmds:
-        logger.error(f"Invalid configuration for extension '.{extension}'.")
-        sys.exit(1)
-
-    # Resolve smart fallbacks by checking which executable is installed
-    template: Any = ""
-    for cmd_tmpl in flattened_cmds:
-        if isinstance(cmd_tmpl, dict):
-            cmd_str = cmd_tmpl.get("compile") or cmd_tmpl.get("run", "")
-        else:
-            cmd_str = cmd_tmpl
-
-        if cmd_str:
-            parts = cmd_str.split()
-            if parts:
-                executable = parts[0]
-                if shutil.which(executable) is not None:
-                    template = cmd_tmpl
-                    break
-
-    if not template:
-        template = flattened_cmds[-1]
-
-    file_q: str = shlex.quote(str(file.resolve()))  # absolute — for execution
-    file_rel_q: str = shlex.quote(str(file))  # relative — for display only
-    file_dir_q: str = shlex.quote(str(file.parent.resolve()))
-    file_dir_rel_q: str = shlex.quote(str(file.parent))
-    file_name_q: str = shlex.quote(file.name)
-    file_stem_q: str = shlex.quote(file.stem)
-
-    out_path: Path = get_out_path(file, temp_dir=config.get("temp_dir"))
-    out_stem_path: Path = out_path.with_suffix("")
-    out_q: str = shlex.quote(str(out_path))
-    out_stem_q: str = shlex.quote(str(out_stem_path))
-
-    try:
-        out_rel_path = os.path.relpath(out_path, os.getcwd())
-    except ValueError:
-        out_rel_path = str(out_path)
-
-    try:
-        out_stem_rel_path = os.path.relpath(out_stem_path, os.getcwd())
-    except ValueError:
-        out_stem_rel_path = str(out_stem_path)
-
-    out_rel_q = shlex.quote(out_rel_path)
-    out_stem_rel_q = shlex.quote(out_stem_rel_path)
-
-    # If the relative path has no slashes, prefix with ./ for execution clarity when copy-pasted
-    if "/" not in out_rel_path and "\\" not in out_rel_path and not os.path.isabs(out_rel_path):
-        out_rel_q = f"./{out_rel_q}"
-
-    if "/" not in out_stem_rel_path and "\\" not in out_stem_rel_path and not os.path.isabs(out_stem_rel_path):
-        out_stem_rel_q = f"./{out_stem_rel_q}"
-
-    cwd_arg: str | None = None
-    if config.get("cd_to_file_dir"):
-        cwd_arg = str(file.parent.resolve())
-
-    compile_tmpl = template.get("compile", "") if isinstance(template, dict) else ""
-    run_tmpl = template.get("run", "") if isinstance(template, dict) else template
-
-    def format_cmd(tmpl: str, for_display: bool = False) -> str:
-        if not tmpl:
-            return ""
-        return tmpl.format(
-            file=file_rel_q if for_display else file_q,
-            out=out_rel_q if for_display else out_q,
-            out_stem=out_stem_rel_q if for_display else out_stem_q,
-            file_dir=file_dir_rel_q if for_display else file_dir_q,
-            file_name=file_name_q,
-            file_stem=file_stem_q,
-        )
-
-    compile_display_cmd = ""
-
-    if compile_tmpl:
-        logger.info(f"Compiling {file.name}...")
-        compile_cmd = format_cmd(compile_tmpl)
-        compile_display_cmd = format_cmd(compile_tmpl, for_display=True)
-
-        # Run compile command
-        kwargs: dict[str, Any] = {"shell": True}
-        if resolved_shell is not None:
-            kwargs["executable"] = resolved_shell
-        if cwd_arg is not None:
-            kwargs["cwd"] = cwd_arg
-
-        compile_start: float = time.perf_counter()
-        compile_result = subprocess.run(compile_cmd, **kwargs)
-        compile_elapsed: float = time.perf_counter() - compile_start
-
-        if compile_result.returncode != 0:
-            if (
-                config.get("show_time_took")
-                or config.get("show_command")
-                or config.get("show_shell")
-            ):
-                shell_path = None
-                if config.get("show_shell"):
-                    raw_shell = (
-                        resolved_shell
-                        if resolved_shell is not None
-                        else (
-                            os.environ.get("COMSPEC", "cmd.exe")
-                            if os.name == "nt"
-                            else "/bin/sh"
-                        )
-                    )
-                    shell_path = shutil.which(raw_shell) or raw_shell
-
-                logger.footer(
-                    "Failed to Compile",
-                    succeeded=False,
-                    elapsed_time=compile_elapsed
-                    if config.get("show_time_took")
-                    else None,
-                    exit_code=compile_result.returncode,
-                    cmd=compile_display_cmd if config.get("show_command") else None,
-                    shell_cmd=shell_path,
-                    show_divider=bool(config.get("show_divider")),
-                )
-
-            pause_before_exit(compile_result.returncode)
-            sys.exit(compile_result.returncode)
-
-    exit_code = 0
-    if run_tmpl:
-        run_cmd_str = format_cmd(run_tmpl)
-        run_display_cmd = format_cmd(run_tmpl, for_display=True)
-
-        if extra_args:
-            run_cmd_str += " " + shlex.join(extra_args)
-            run_display_cmd += " " + shlex.join(extra_args)
-
-        if config.get("clear_terminal"):
-            os.system("cls" if os.name == "nt" else "clear")
-
-        if compile_tmpl:
-            run_display_cmd = f"{compile_display_cmd} && {run_display_cmd}"
-
-        exit_code = run_cmd(
-            run_cmd_str,
-            shell=resolved_shell,
-            show_time=bool(config.get("show_time_took")),
-            show_command=bool(config.get("show_command")),
-            display_cmd=run_display_cmd,
-            cwd=cwd_arg,
-            show_shell=bool(config.get("show_shell")),
-            show_divider=bool(config.get("show_divider")),
-        )
-
-    # Clean up temporary compiled binary and related artifacts if configured to do so
-    if not config.get("keep_artifacts"):
-        try:
-            parent_dir: Path = out_path.parent
-            stem = out_path.stem
-
-            if parent_dir.exists() and parent_dir.is_dir():
-                for item in parent_dir.iterdir():
-                    if item.stem == stem or item.name.startswith(stem + "."):
-                        if item.is_file():
-                            item.unlink()
-                        elif item.is_dir():
-                            shutil.rmtree(item)
-
-            # Remove parent directory if it is empty
-            if parent_dir.exists() and parent_dir.is_dir():
-                if not any(parent_dir.iterdir()):
-                    parent_dir.rmdir()
-
-        except Exception:
-            pass
-
-    pause_before_exit(exit_code)
-    sys.exit(exit_code)
+    except KeyboardInterrupt:
+        print()
+        sys.exit(130)
 
 
 if __name__ == "__main__":
