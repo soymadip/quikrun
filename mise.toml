@@ -29,3 +29,7 @@ run = [{ task = "lint" }, { task = "format" }]
 [tasks.build]
 description = "Build standalone executable using PyInstaller"
 run = "uv run pyinstaller --onefile --name quikrun --paths src src/quikrun/main.py"
+
+[tasks.tests]
+description = "Run test suite"
+run = "uv run pytest"
