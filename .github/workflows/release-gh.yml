@@ -20,12 +20,13 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  get-info:
     runs-on: ubuntu-latest
-    env:
-      VERSION: ""
-      CHANGELOG: ""
-      IS_PRERELEASE: ""
+    outputs:
+      version: ${{ steps.version.outputs.VERSION }}
+      tag: v${{ steps.version.outputs.VERSION }}
+      is_prerelease: ${{ steps.version.outputs.IS_PRERELEASE }}
+      changelog: ${{ steps.changelog.outputs.CHANGELOG }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -34,26 +35,37 @@ jobs:
 
       - uses: jdx/mise-action@v4
 
-      - name: Get Repo name, Version & Changelog
-        id: get_version_and_changelog
+      - name: Get Version
+        id: version
         run: |
-          repo_name=$(echo "${GITHUB_REPOSITORY#*/}" | tr '[:upper:]' '[:lower:]')
-          echo "REPO_NAME=$repo_name" >> "$GITHUB_ENV"
-
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             version="${{ inputs.version }}"
-            new_tag="v${version}"
-            git tag "${new_tag}"
           else
-            new_tag="${{ github.ref_name }}"
-            version="${new_tag#v}"
+            tag="${{ github.ref_name }}"
+            version="${tag#v}"
           fi
-          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "VERSION=$version" >> "$GITHUB_OUTPUT"
+          
+          if [[ "$version" == 0* ]]; then
+            echo "IS_PRERELEASE=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "IS_PRERELEASE=false" >> "$GITHUB_OUTPUT"
+          fi
 
-          echo "Generating changelog for ${new_tag}"
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          version="${{ steps.version.outputs.VERSION }}"
+          new_tag="v${version}"
+          
+          # Temporarily tag for changelog generation if manual release
+          if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
+            git tag "${new_tag}"
+          fi
+          
           mise trust
           changelog=$(mise r changelog -- "${new_tag}..${new_tag}" --dry-run | sed -n '/^###/,$p')
-
+          
           {
             echo "CHANGELOG<<EOF"
             if [[ -n "$changelog" ]]; then
@@ -63,26 +75,92 @@ jobs:
               echo "No changes to note for this release."
             fi
             echo "EOF"
-          } >> "$GITHUB_ENV"
+          } >> "$GITHUB_OUTPUT"
 
-          if [[ "$version" == 0* ]]; then
-            echo "IS_PRERELEASE=true" >> "$GITHUB_ENV"
-          else
-            echo "IS_PRERELEASE=false" >> "$GITHUB_ENV"
-          fi
+  build-linux:
+    needs: get-info
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
 
-      - name: Build distributions
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v8.2.0
+
+      - uses: jdx/mise-action@v4
+
+      - name: Build python distributions
         run: uv build
+
+      - name: Build Linux executable
+        run: |
+          mise run build
+          mv dist/quikrun dist/quikrun-linux-amd64
+
+      - name: Upload Linux and python dists
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-dists
+          path: dist/*
+
+  build-windows:
+    needs: get-info
+    runs-on: windows-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - uses: jdx/mise-action@v4
+
+      - name: Build executable
+        run: |
+          mise run build
+          mv dist/quikrun.exe dist/quikrun-windows-amd64.exe
+
+      - name: Upload Windows executable
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-exe
+          path: dist/quikrun-windows-amd64.exe
+
+  release:
+    needs: [get-info, build-linux, build-windows]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Create Git Tag if Manual
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag "${{ needs.get-info.outputs.tag }}"
+          git push origin "${{ needs.get-info.outputs.tag }}"
+
+      - name: Download Python Dists and Linux Executable
+        uses: actions/download-artifact@v4
+        with:
+          name: python-dists
+          path: dist/
+
+      - name: Download Windows Exe
+        uses: actions/download-artifact@v4
+        with:
+          name: windows-exe
+          path: dist-exe/
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3
         with:
-          tag_name: v${{ env.VERSION }}
-          name: v${{ env.VERSION }}
-          body: ${{ env.CHANGELOG }}
-          prerelease: ${{ env.IS_PRERELEASE == 'true' }}
+          tag_name: ${{ needs.get-info.outputs.tag }}
+          name: ${{ needs.get-info.outputs.tag }}
+          body: ${{ needs.get-info.outputs.changelog }}
+          prerelease: ${{ needs.get-info.outputs.is_prerelease == 'true' }}
           files: |
             dist/*.tar.gz
             dist/*.whl
+            dist/quikrun-linux-amd64
+            dist-exe/quikrun-windows-amd64.exe
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
