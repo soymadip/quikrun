@@ -244,6 +244,26 @@ def main() -> None:
     out_q: str = shlex.quote(str(out_path))
     out_stem_q: str = shlex.quote(str(out_stem_path))
 
+    try:
+        out_rel_path = os.path.relpath(out_path, os.getcwd())
+    except ValueError:
+        out_rel_path = str(out_path)
+
+    try:
+        out_stem_rel_path = os.path.relpath(out_stem_path, os.getcwd())
+    except ValueError:
+        out_stem_rel_path = str(out_stem_path)
+
+    out_rel_q = shlex.quote(out_rel_path)
+    out_stem_rel_q = shlex.quote(out_stem_rel_path)
+
+    # If the relative path has no slashes, prefix with ./ for execution clarity when copy-pasted
+    if "/" not in out_rel_path and "\\" not in out_rel_path and not os.path.isabs(out_rel_path):
+        out_rel_q = f"./{out_rel_q}"
+
+    if "/" not in out_stem_rel_path and "\\" not in out_stem_rel_path and not os.path.isabs(out_stem_rel_path):
+        out_stem_rel_q = f"./{out_stem_rel_q}"
+
     cwd_arg: str | None = None
     if config.get("cd_to_file_dir"):
         cwd_arg = str(file.parent.resolve())
@@ -256,8 +276,8 @@ def main() -> None:
             return ""
         return tmpl.format(
             file=file_rel_q if for_display else file_q,
-            out=out_q,
-            out_stem=out_stem_q,
+            out=out_rel_q if for_display else out_q,
+            out_stem=out_stem_rel_q if for_display else out_stem_q,
             file_dir=file_dir_rel_q if for_display else file_dir_q,
             file_name=file_name_q,
             file_stem=file_stem_q,
