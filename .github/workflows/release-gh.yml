@@ -45,7 +45,7 @@ jobs:
             version="${tag#v}"
           fi
           echo "VERSION=$version" >> "$GITHUB_OUTPUT"
-          
+
           if [[ "$version" == 0* ]]; then
             echo "IS_PRERELEASE=true" >> "$GITHUB_OUTPUT"
           else
@@ -57,15 +57,15 @@ jobs:
         run: |
           version="${{ steps.version.outputs.VERSION }}"
           new_tag="v${version}"
-          
+
           # Temporarily tag for changelog generation if manual release
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             git tag "${new_tag}"
           fi
-          
+
           mise trust
           changelog=$(mise r changelog -- "${new_tag}..${new_tag}" --dry-run | sed -n '/^###/,$p')
-          
+
           {
             echo "CHANGELOG<<EOF"
             if [[ -n "$changelog" ]]; then

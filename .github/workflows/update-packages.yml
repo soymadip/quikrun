@@ -246,5 +246,3 @@ jobs:
           installers-regex: '${{ needs.get-info.outputs.pkgname }}-windows-amd64\.exe$'
           max-versions-to-keep: 4
           token: ${{ secrets.WINGET_TOKEN }}
-
-
