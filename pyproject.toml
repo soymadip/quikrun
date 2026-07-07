@@ -10,10 +10,6 @@ authors = [{ name = "Soumadip Das", email = "soumadip@zohomail.in" }]
 requires-python = ">=3.13"
 dependencies = []
 
-[dependency-groups]
-dev = [
-    "pytest>=9.1.1",
-]
 
 [project.urls]
 Homepage = "https://github.com/soymadip/quikrun"
@@ -25,3 +21,9 @@ quikrun = "quikrun.main:main"  # the command quikrun should call the main functi
 [build-system]
 requires = ["uv_build>=0.11.14,<0.12.0"]
 build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+    "pyinstaller>=6.21.0",
+]

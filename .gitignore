@@ -9,6 +9,7 @@ wheels/
 *.egg-info
 wiki/
 node_modules/
+quikrun.spec
 
 # Virtual environments
 .venv

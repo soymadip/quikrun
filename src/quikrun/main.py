@@ -11,14 +11,28 @@ from pathlib import Path
 from subprocess import CompletedProcess
 from typing import Any
 
-from .lib import loader, logger
-from .lib.utils import (
+from quikrun.lib import loader, logger
+from quikrun.lib.utils import (
     arg_parser,
     detect_shebang,
     get_out_path,
     resolve_template,
     run_cmd,
 )
+
+
+def was_console_spawned() -> bool:
+    """Return True if the console window was spawned specifically for this process (e.g., double-clicked)."""
+    if os.name != "nt":
+        return False
+
+    try:
+        import ctypes
+        arr = (ctypes.c_ulong * 10)()
+        count = ctypes.windll.kernel32.GetConsoleProcessList(arr, 10)
+        return count == 1
+    except Exception:
+        return False
 
 
 def main() -> None:
@@ -29,6 +43,12 @@ def main() -> None:
     # No arguments given
     if len(sys.argv) == 1:
         arg_parser().print_help()
+        if was_console_spawned():
+            print()
+            try:
+                input("\nPress Enter to exit...")
+            except (EOFError, KeyboardInterrupt):
+                pass
         sys.exit(0)
 
     parser: ArgumentParser = arg_parser()

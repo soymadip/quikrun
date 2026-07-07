@@ -24,3 +24,7 @@ run = "ruff check --fix"
 [tasks.fmt]
 description = "Fix lint errors and format all files"
 run = [{ task = "lint" }, { task = "format" }]
+
+[tasks.build]
+description = "Build standalone executable using PyInstaller"
+run = "uv run pyinstaller --onefile --name quikrun --paths src src/quikrun/main.py"

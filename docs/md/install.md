@@ -19,7 +19,7 @@ yay -S quikrun
 
 ## Via PyPI
 
-If there is not package for your distro, you can install directly:
+If there is not package for your distro/os, you can install directly:
 
 ```bash
 # Using uv (highly recommended for global installation)
