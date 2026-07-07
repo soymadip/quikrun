@@ -48,17 +48,17 @@ def footer(
         print(fmt("-" * 43, _GRAY))
 
     time_str = (
-        fmt(f" (in {elapsed_time:.3f}s)", _GRAY) if elapsed_time is not None else ""
+        fmt(f" [took {elapsed_time:.3f}s]", _GRAY) if elapsed_time is not None else ""
     )
     color = _GREEN if succeeded else _RED
 
-    print(fmt(f"⏵ {msg}", color) + time_str)
+    exit_str = ""
 
     if exit_code is not None:
-        if exit_code != 0:
-            print(fmt("⏵ Exit code: ", _RED) + fmt(str(exit_code), _RED))
-        else:
-            print(fmt("⏵ Exit code: ", _CYAN) + fmt(str(exit_code), _GRAY))
+        exit_color = _GRAY if exit_code == 0 else _RED
+        exit_str = fmt(f" [exit code {exit_code}]", exit_color)
+
+    print(fmt(f"⏵ {msg}", color) + exit_str + time_str)
 
     if shell_cmd:
         print(fmt("⏵ Shell: ", _CYAN) + fmt(shell_cmd, _GRAY))
