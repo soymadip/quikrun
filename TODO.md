@@ -1,2 +1,0 @@
-- [ ] The compiled binary and .quikkrun is in file dir but all output and run is in pwd? why
-- [ ] .quikrun dir is being created even for interpreted languages like python

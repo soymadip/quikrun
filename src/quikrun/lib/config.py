@@ -11,7 +11,7 @@ Template placeholders:
 
 from typing import Any
 
-cmd_templates: dict[str, Any] = {
+default_cmds: dict[str, Any] = {
     #
     # ---------------- Interpreted ---------------
     "bash": "bash {file}",
@@ -19,7 +19,7 @@ cmd_templates: dict[str, Any] = {
     "fish": "fish {file}",
     "java": "java {file}",
     "jl": "julia {file}",
-    "js": ["bun run {file}", "deno run {file}", "node {file}"],
+    "js": ["bun run {file}", "node {file}"],
     "cjs": "@js",
     "mjs": "@js",
     "lua": "lua {file}",
