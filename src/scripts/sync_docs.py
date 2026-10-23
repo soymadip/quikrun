@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
-import sys
 import json
+import sys
 from pathlib import Path
 
 src_dir = str(Path(__file__).parent.parent.resolve())

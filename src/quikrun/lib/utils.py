@@ -14,7 +14,7 @@ from . import logger
 
 
 def arg_parser() -> ArgumentParser:
-    parser: ArgumentParser = ArgumentParser(
+    parser = ArgumentParser(
         prog="quikrun",
         description="Run your code files without hassle.",
     )

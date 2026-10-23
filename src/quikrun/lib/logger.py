@@ -22,6 +22,7 @@ def _tty() -> bool:
 
 def fmt(text: str, *codes: str) -> str:
     """Wrap text in ANSI codes if stdout is a TTY."""
+
     if not _tty():
         return text
 
@@ -62,7 +63,7 @@ def footer(
 
     if cmd:
         via_str = f" [via {shell_cmd}]" if shell_cmd else ""
-        prefix = "⏵ Command [shebang]: " if shebang else "⏵ Command: "
+        prefix: str = "⏵ Command [shebang]: " if shebang else "⏵ Command: "
         print(fmt(prefix, _CYAN) + fmt(cmd, _GRAY) + fmt(via_str, _GRAY))
     elif shell_cmd:
         print(fmt("⏵ Shell: ", _CYAN) + fmt(shell_cmd, _GRAY))
