@@ -16,7 +16,7 @@ Repository = "https://github.com/soymadip/quikrun"
 
 
 [project.scripts]
-quikrun = "quikrun.__main__:main"
+quikrun = "quikrun.cli:run_cli"
 
 
 [build-system]

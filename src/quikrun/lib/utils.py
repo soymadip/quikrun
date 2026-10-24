@@ -1,4 +1,3 @@
-import shlex
 from pathlib import Path
 lazy import sys
 
@@ -10,7 +9,6 @@ def is_tty() -> bool:
 
 def get_shebang(target_file: Path) -> None | str:
     """Detect The shebang And parse it, return as list of args"""
-
     try:
         with open(target_file, "r", encoding="utf-8") as file:
             line1 = file.readline().strip()
