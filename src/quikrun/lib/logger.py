@@ -1,7 +1,10 @@
 import sys
 from typing import Literal
 
-from .utils import is_tty
+
+def is_tty() -> bool:
+    """Check if executed in tty"""
+    return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
 
 
 class Logger:
@@ -27,7 +30,7 @@ class Logger:
         match level:
             case "info":
                 prefix: str = "!"
-                color: str = " "
+                color: str = "CYAN"
             case "success":
                 prefix = "✓"
                 color = "GREEN"

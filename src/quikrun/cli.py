@@ -3,13 +3,12 @@ from argparse import ArgumentParser, Namespace
 from pathlib import Path
 
 from . import __version__
-from .lib.logger import log
-from .lib.utils import is_tty
+from .lib.logger import is_tty, log
 from .runner import quick_run
 
 
 def run_cli() -> None:
-    "CLI wrapper for Quikrun"
+    """CLI wrapper for Quikrun"""
     try:
         if is_tty():
             print()
@@ -22,7 +21,14 @@ def run_cli() -> None:
             "-v", "--version", action="version", version=f"%(prog)s {__version__}"
         )
 
-        parser.add_argument("FILE", help="Target file's path to run")
+        parser.add_argument(
+            "-i",
+            "--info",
+            action="store_true",
+            help="Show project information, version, and repository details",
+        )
+
+        parser.add_argument("FILE", nargs="?", help="Target file's path to run")
 
         # If No arguments are given, print help
         if len(sys.argv) == 1:
@@ -35,6 +41,19 @@ def run_cli() -> None:
         extra_args: list[str]
 
         args, extra_args = parser.parse_known_args()
+
+        # --info flag
+        if args.info:
+            print(f"quikrun v{__version__}")
+            print("Homepage: https://soymadip.github.io/quikrun")
+            print("Project Repo: https://github.com/soymadip/quikrun")
+            sys.exit(0)
+
+        # Ensure a target file was provided if --info wasn't used
+        if not args.FILE:
+            log.error("Error: No target file specified!\n")
+            parser.print_help()
+            sys.exit(1)
 
         target_file: Path = Path(args.FILE.strip())
 
