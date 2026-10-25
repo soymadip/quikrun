@@ -88,6 +88,13 @@ def quick_run(file_path: Path, args: list[str] | None = None) -> int:
     #
     # ------------- Start execution --------------
 
+    # Clear the terminal
+    run_command("clear" if shell == "posix" else "cls", use_shell=True)
+
+    term_size = shutil.get_terminal_size()
+    divider: str = log.fmt(f"{'-' * (term_size.columns - 5)}", "GRAY")
+
+
     # Create output directory
     # if compile command is present or run command uses output dir/file
     if compile_cmd or is_any_in(cast(str, run_cmd), ["{out_dir}", "{out_file}"]):

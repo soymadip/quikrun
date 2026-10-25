@@ -16,6 +16,7 @@ type Color = Literal[
     "YELLOW",
     "CYAN",
     "GRAY",
+    "BLUE",
 ]
 
 
@@ -30,6 +31,7 @@ class Logger:
             "YELLOW": "\033[33m",
             "CYAN": "\033[36m",
             "GRAY": "\033[90m",
+            "BLUE": "\033[34m",
         }
 
     def fmt(self, text: str, color: Color) -> str:
@@ -39,12 +41,14 @@ class Logger:
 
         return self.__col.get(color, "") + text + self.__col["RESET"]
 
-    def __log(self, msg: str, level: Literal["info", "success", "warn", "error"]):
+    def __log(
+        self, msg: str, level: Literal["info", "success", "warn", "error", "dim"]
+    ):
         """Internal Central Logging Function"""
         match level:
             case "info":
                 prefix: str = "!"
-                color: Color = "CYAN"
+                color: Color = "BLUE"
             case "success":
                 prefix = "✓"
                 color = "GREEN"
@@ -54,6 +58,9 @@ class Logger:
             case "error":
                 prefix = "✗"
                 color = "RED"
+            case "dim":
+                prefix = "⏵"
+                color = "GRAY"
 
         print(self.fmt(f"{prefix} {msg}", color), file=sys.stderr)
 
@@ -69,8 +76,9 @@ class Logger:
     def error(self, msg: str) -> None:
         self.__log(msg, "error")
 
-    def footer(self) -> None:
-        raise NotImplementedError
+    def dim(self, msg: str) -> None:
+        self.__log(msg, "dim")
 
 
+# Make a Logger object
 log = Logger()
