@@ -7,30 +7,44 @@ def is_tty() -> bool:
     return hasattr(sys.stdout, "isatty") and sys.stdout.isatty()
 
 
-class Logger:
-    __col = frozendict(
-        RESET="\033[0m",
-        BOLD="\033[1m",
-        DIM="\033[2m",
-        RED="\033[31m",
-        GREEN="\033[32m",
-        YELLOW="\033[33m",
-        CYAN="\033[36m",
-        GRAY="\033[90m",
-    )
+type Color = Literal[
+    "RESET",
+    "BOLD",
+    "DIM",
+    "RED",
+    "GREEN",
+    "YELLOW",
+    "CYAN",
+    "GRAY",
+]
 
-    def __fmt(self, text: str, color: str) -> str:
-        """Wrap text in ANSI codes if stdout is a TTY."""
-        if not is_tty():  # pyright: ignore[reportCallIssue]
-            color = ""
+
+class Logger:
+    def __init__(self) -> None:
+        self.__col: dict[Color, str] = {
+            "RESET": "\033[0m",
+            "BOLD": "\033[1m",
+            "DIM": "\033[2m",
+            "RED": "\033[31m",
+            "GREEN": "\033[32m",
+            "YELLOW": "\033[33m",
+            "CYAN": "\033[36m",
+            "GRAY": "\033[90m",
+        }
+
+    def fmt(self, text: str, color: Color) -> str:
+        """Wrap text in ANSI color codes if stdout is a TTY."""
+        if not is_tty():
+            color = "RESET"
 
         return self.__col.get(color, "") + text + self.__col["RESET"]
 
     def __log(self, msg: str, level: Literal["info", "success", "warn", "error"]):
+        """Internal Central Logging Function"""
         match level:
             case "info":
                 prefix: str = "!"
-                color: str = "CYAN"
+                color: Color = "CYAN"
             case "success":
                 prefix = "✓"
                 color = "GREEN"
@@ -41,7 +55,7 @@ class Logger:
                 prefix = "✗"
                 color = "RED"
 
-        print(self.__fmt(f"{prefix} {msg}", color), file=sys.stderr)
+        print(self.fmt(f"{prefix} {msg}", color), file=sys.stderr)
 
     def info(self, msg: str) -> None:
         self.__log(msg, "info")
