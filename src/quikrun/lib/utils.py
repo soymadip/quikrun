@@ -1,19 +1,23 @@
-from typing import TypedDict
+"""Utility Methods for quikrun."""
+
+from collections.abc import Iterable
+from typing import Any, TypedDict, cast
 lazy import shutil
 lazy import subprocess
-lazy import sys
 lazy from pathlib import Path
+lazy from shlex import quote
 lazy from time import perf_counter
 
+from .config import UNQUOTED_VARS, CmdCommand, CmdVars
 from .logger import log
 
 # sentinel Types
-INVALID_KEY_PRESENT = sentinel("INVALID_KEY_PRESENT")
+INVALID_KEY = sentinel("INVALID_KEY")
 INVALID_DATA_TYPE = sentinel("INVALID_DATA_TYPE")
 NO_BIN_AVAIL = sentinel("NO_BIN_AVAIL")
 
 
-type NA = None | NO_BIN_AVAIL | INVALID_KEY_PRESENT | INVALID_DATA_TYPE
+type NA = None | NO_BIN_AVAIL | INVALID_KEY | INVALID_DATA_TYPE
 
 
 class ResolvedCmd(TypedDict):
@@ -36,12 +40,12 @@ class RunResult(TypedDict):
     time_taken: float
 
 
-def get_shebang(target_file: Path) -> str:
+def get_shebang(file_path: Path) -> str:
     """Detect the shebang if present & return the interpreter path, else return empty str."""
     shebang_prefix = "#!"
 
     try:
-        with open(target_file, "r", encoding="utf-8", errors="ignore") as file:
+        with open(file_path, "r", encoding="utf-8", errors="ignore") as file:
             line1 = file.readline().strip()
 
             if not line1.startswith(shebang_prefix):
@@ -50,17 +54,18 @@ def get_shebang(target_file: Path) -> str:
             return line1.removeprefix(shebang_prefix).strip()
 
     except (OSError, UnicodeDecodeError) as e:
-        log.error(f"Error reading {target_file}: {e}")
+        log.error(f"Error reading {file_path}: {e}")
         return ""
 
 
-def is_all_in(iterator: list | dict, items: list) -> bool:
-    """Check if given items all are in a list"""
-    for item in items:
-        if item not in iterator:
-            return False
+def is_all_in(iterator: Iterable[Any], items: Iterable[Any]) -> bool:
+    """Check if all of the given items are present in the given iterable."""
+    return all(item in iterator for item in items)
 
-    return True
+
+def is_any_in(iterator: Iterable[Any], items: Iterable[Any]) -> bool:
+    """Check if any of the given items are present in the given iterable."""
+    return any(item in iterator for item in items)
 
 
 def get_avail_cmd(cfg_list: list[str]) -> str | NO_BIN_AVAIL:
@@ -82,16 +87,14 @@ def get_avail_cmd(cfg_list: list[str]) -> str | NO_BIN_AVAIL:
 
 
 def resolve_cmd(
-    config_obj: str | list | dict,
+    config_obj: CmdCommand,
     file_ext: str,
     shell: str,
     platform: str,
-    placeholders: dict | None = None,
+    variables: CmdVars | None = None,
+    _is_recursing: bool = False,
 ) -> ResolvedCmd:
     """Resolve command From a extension's value"""
-
-    if file_ext.startswith("."):
-        file_ext = file_ext.removeprefix(".")
 
     def _recurse(current_obj) -> ResolvedCmd:
         return resolve_cmd(
@@ -99,30 +102,37 @@ def resolve_cmd(
             file_ext,
             shell,
             platform,
-            placeholders,
+            variables,
+            _is_recursing=True,
         )
 
     # Strip leading dot
-    if file_ext.startswith("."):
+    if file_ext.startswith(".") or not _is_recursing:
         file_ext = file_ext.removeprefix(".")
 
     # Quote placeholders
-    if placeholders:
+    if variables and not _is_recursing:
         quoted = {}
-        for k, v in placeholders.items():
-            if k not in UNQUOTED_KEYS:
-                v = quote(cast(str, v))
+        for k, v in variables.items():
+            v = str(v)
+            quoted[k] = quote(v) if k not in UNQUOTED_VARS else v
+        variables = cast(CmdVars, quoted)
 
-            quoted[k] = v
+    # Pick only config of given file extension
+    if not _is_recursing and isinstance(config_obj, dict):
+        try:
+            config_obj = config_obj[file_ext]
+        except KeyError:
+            log.error(f"Extension `{file_ext}` is not supported Yet")
+            log.info("Please Report in Project Repository. (Tip: run quikrun --info)")
 
-        placeholders = cast(CmdPlaceholders, quoted)
-
+            return {"run": INVALID_KEY, "compile": INVALID_KEY}
     #
     # ----------------- Resolve Command -----------------
 
     if isinstance(config_obj, str):
-        if placeholders:
-            config_obj = config_obj.format_map(placeholders)
+        if variables:
+            config_obj = config_obj.format_map(variables)
 
         return {"run": config_obj, "compile": None}
 
@@ -147,7 +157,7 @@ def resolve_cmd(
             log.error(
                 f"There are invalid/incomplete keys in {file_ext}'s configuration..."
             )
-            return {"run": INVALID_KEY_PRESENT, "compile": INVALID_KEY_PRESENT}
+            return {"run": INVALID_KEY, "compile": INVALID_KEY}
 
         return _recurse(config_obj)
 
