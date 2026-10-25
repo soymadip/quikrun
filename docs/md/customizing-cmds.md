@@ -5,30 +5,36 @@ If your language is not listed, or if you want to override the default command f
 ```toml
 # using quikrun.toml
 [commands]
-py = "python3 {file}"   # overrides default
-ext = "your-cmd {file}" # Register new .ext file
+py = "python3 {file_path}"   # overrides default
+ext = "your-cmd {file_path}" # Register new .ext file
 
 # using pyproject.toml
 [tool.quikrun.commands]
-py = "python3 {file}"
+py = "python3 {file_path}"
 
 # using Cargo.toml
 [package.metadata.quikrun.commands]
-py = "python3 {file}"
+py = "python3 {file_path}"
 ```
 
-## Placeholders
+## Variables
 
-Templates use these placeholders (shell-quoted):
+Templates use these variables as placeholders.  
+These will be replaced with the actual values during command execution.
 
-| Placeholder   | Value                                                                            |
-| ------------- | -------------------------------------------------------------------------------- |
-| `{file}`      | absolute path to the source file                                                 |
-| `{file_dir}`  | directory path containing the source file                                        |
-| `{file_name}` | name of the source file (e.g. `main.py`)                                         |
-| `{file_stem}` | filename without its extension (e.g. `main`)                                     |
-| `{out}`       | absolute path to the compiled binary (compiled langs only)                       |
-| `{out_stem}`  | absolute path to the compiled binary without its extension (compiled langs only) |
+| Placeholder      | Value                                                                |
+| ---------------- | -------------------------------------------------------------------- |
+| `{file_file}`    | Relative path to the given file (<small>quoted</small>)              |
+| `{file_dir}`     | Relative path of dir containing the file (<small>uoted</small>)      |
+| `{file_name}`    | name of the given file (e.g. `main.py`) (<small>quoted</small>)      |
+| `{file_stem}`    | filename without its extension (e.g. `main`) (<small>quoted</small>) |
+| `{file_slug}`    | file name without spaces (e.g., 'my file.py' -> 'my_file')           |
+| `{file_ext}`     | Given file's extension (e.g. `py`)                                   |
+| `{file_shebang}` | Shebang (if present) of given file (<small>quoted</small>)           |
+| `{out_dir}`      | Path to the compiled output bin's dir (<small>shell quoted</small>)  |
+| `{out_file}`     | path to out_dir/file_stem (<small>quoted</small>)                    |
+| `{platform}`     | Platform name ('linux'/'darwin'/'win')                               |
+| `{shell}`        | Shell name ('posix'/'cmd'/'pwsh')                                    |
 
 ## Cross Platform/Shell Commands
 
@@ -36,8 +42,8 @@ If a same command is valid across all platforms/shells, it can be defined using 
 
 ```toml
 [commands]
-py = "python3 {file}" # ran in any os/shell
-c = { compile = "gcc -Wall -Wextra {file} -o {out}", run = "{out}" }  # ran on any os/shell
+py = "python3 {file_path}" # ran in any os/shell
+c = { compile = "gcc -Wall -Wextra {file_path} -o {out_file}", run = "{out_file}" }  # ran on any os/shell
 ```
 
 ## Platform & Shell Specific Commands
@@ -57,9 +63,9 @@ Used if a specific shell requires unique syntax (e.g. setting environment variab
 ```toml
 [commands]
 foo = {
-    posix = "ENV_VAR=1 foo {file}",       # runs on bash/zsh...   on any OS
-    pwsh =  "$env:ENV_VAR=1; foo {file}", # runs on PowerShell 7+ on any OS
-    cmd =   "set ENV_VAR=1& foo {file}",  # runs on Windows CMD   on any OS
+    posix = "ENV_VAR=1 foo {file_path}",       # runs on bash/zsh...   on any OS
+    pwsh =  "$env:ENV_VAR=1; foo {file_path}", # runs on PowerShell 7+ on any OS
+    cmd =   "set ENV_VAR=1& foo {file_path}",  # runs on Windows CMD   on any OS
 }
 ```
 
@@ -71,12 +77,12 @@ Used when the executable name differs across operating systems
 [commands]
 foo = {
    posix = {
-       linux = "foo-linux {file}",  # runs on bash/zsh... on Linux
-       darwin = "foo-mac {file}",   # runs on bash/zsh... on macOS
-       win = "foo-win {file}",      # runs on bash/zsh... on Windows
+       linux = "foo-linux {file_path}",  # runs on bash/zsh... on Linux
+       darwin = "foo-mac {file_path}",   # runs on bash/zsh... on macOS
+       win = "foo-win {file_path}",      # runs on bash/zsh... on Windows
     },
-    pwsh = "foo-win {file}",  # runs on PowerShell 7+ on any OS
-    cmd = "foo-win {file}",   # runs on Windows CMD   on any OS
+    pwsh = "foo-win {file_path}",  # runs on PowerShell 7+ on any OS
+    cmd = "foo-win {file_path}",   # runs on Windows CMD   on any OS
 }
 ```
 
@@ -86,7 +92,7 @@ quikrun will automatically pick the first command installed on your system!
 
 ```toml
 [commands]
-js = ["bun run {file}", "deno run {file}", "node {file}"]
+js = ["bun run {file_path}", "deno run {file_path}", "node {file_path}"]
 ```
 
 ## Split Compile & Run
@@ -96,8 +102,8 @@ For Compiled languages, it's recommended to define compile & run commands separa
 ```toml
 [commands]
 go = {
-  compile = "go build -o {out} {file}",
-  run = "{out}",
+  compile = "go build -o {out_file} {file_path}",
+  run = "{out_file}",
 }
 ```
 
@@ -109,8 +115,8 @@ You can nest compile-run tables under shell or operating systems (inside shell f
 [commands]
 cpp = {
   posix = {
-    linux = { compile = "g++ -Wall {file} -o {out}", run = "{out}" },       # runs on bash/zsh... on Linux
-    darwin = { compile = "clang++ -Wall {file} -o {out}", run = "{out}" },  # runs on bash/zsh... on macOS
+    linux = { compile = "g++ -Wall {file_path} -o {out_file}", run = "{out_file}" },       # runs on bash/zsh... on Linux
+    darwin = { compile = "clang++ -Wall {file_path} -o {out_file}", run = "{out_file}" },  # runs on bash/zsh... on macOS
   }
 }
 
@@ -132,6 +138,6 @@ Your can also inherit commands from an template and add more
 
 ```toml
 [commands]
-js = ["bun run {file}", "deno run {file}", "node {file}"]
-ts = ["@js", "tsc {file}"]
+js = ["bun run {file_path}", "deno run {file_path}", "node {file_path}"]
+ts = ["@js", "tsc {file_path}"]
 ```

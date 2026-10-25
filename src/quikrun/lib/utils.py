@@ -90,6 +90,9 @@ def resolve_cmd(
 ) -> ResolvedCmd:
     """Resolve command From a extension's value"""
 
+    if file_ext.startswith("."):
+        file_ext = file_ext.removeprefix(".")
+
     def _recurse(current_obj) -> ResolvedCmd:
         return resolve_cmd(
             current_obj,
@@ -98,6 +101,24 @@ def resolve_cmd(
             platform,
             placeholders,
         )
+
+    # Strip leading dot
+    if file_ext.startswith("."):
+        file_ext = file_ext.removeprefix(".")
+
+    # Quote placeholders
+    if placeholders:
+        quoted = {}
+        for k, v in placeholders.items():
+            if k not in UNQUOTED_KEYS:
+                v = quote(cast(str, v))
+
+            quoted[k] = v
+
+        placeholders = cast(CmdPlaceholders, quoted)
+
+    #
+    # ----------------- Resolve Command -----------------
 
     if isinstance(config_obj, str):
         if placeholders:
