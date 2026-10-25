@@ -1,6 +1,7 @@
+import shutil
 import sys
 from pathlib import Path
-from typing import cast
+from typing import Literal, cast
 
 from .lib.config import CmdVars, Platform, Shell, default_cmds
 from .lib.logger import log
@@ -10,6 +11,7 @@ from .lib.utils import (
     is_any_in,
     resolve_cmd,
     run_command,
+    scroll_up,
 )
 
 
@@ -40,7 +42,7 @@ def quick_run(file_path: Path, args: list[str] | None = None) -> int:
     run_cmd: str | NA = ""
 
     # Output Dir, Path
-    out_dir = cwd / ".quikrun"
+    out_dir = Path(".quikrun")
     out_file = out_dir / file_path.stem
 
     # File Related Info
@@ -88,23 +90,28 @@ def quick_run(file_path: Path, args: list[str] | None = None) -> int:
     #
     # ------------- Start execution --------------
 
-    # Clear the terminal
-    run_command("clear" if shell == "posix" else "cls", use_shell=True)
-
     term_size = shutil.get_terminal_size()
-    divider: str = log.fmt(f"{'-' * (term_size.columns - 5)}", "GRAY")
+    clear_term: bool | Literal["scroll_up"] = "scroll_up"
 
+    # Clear the terminal
+    if clear_term == "scroll_up":
+        scroll_up()
+    elif clear_term:
+        run_command("clear" if shell == "posix" else "cls")
 
     # Create output directory
     # if compile command is present or run command uses output dir/file
     if compile_cmd or is_any_in(cast(str, run_cmd), ["{out_dir}", "{out_file}"]):
-        log.info(f"Creating Output Directory: {out_dir}")
-        out_dir.mkdir(exist_ok=True, parents=True)
+        try:
+            out_dir.mkdir(exist_ok=True, parents=True)
+        except (OSError, PermissionError) as e:
+            log.error(f"Failed to create output directory: {e}")
+            return 1
 
     # compile if needed
     if compile_cmd:
-        log.info(f"Compiling Your File: {file_path}")
-        log.info(f"Command: {compile_cmd}")
+        log.info("Compiling Your Code....")
+        log.info(f"Command: {log.fmt(compile_cmd, 'GRAY')}")  # pyright: ignore[reportArgumentType]
 
         compile_result = run_command(cast(str, compile_cmd))
 
@@ -112,22 +119,33 @@ def quick_run(file_path: Path, args: list[str] | None = None) -> int:
             log.error("Failed to compile Your File. Check Logs Above!")
             return compile_result["return_code"]
 
-        log.success("Compilation Done!")
-        log.info(f"Took: {round(compile_result['time_taken'], 4)}s")
+        cmp_time = f"[took {round(compile_result['time_taken'], 3)}s]"
+
+        log.success(f"Compilation Done. {log.fmt(cmp_time, 'GRAY')}")
+        log.info("Executing Compiled Binary.")
 
     #
     # Run the binary/command
-    print("\n----------------- Running Your Code  -------------------")
+    scroll_up()
+    print(log.fmt(" Output ".center(term_size.columns, "-"), "GRAY"))
 
     run_result = run_command(cast(str, run_cmd))
+    run_status = log.fmt(
+        f"[took {round(run_result['time_taken'], 3)}s] [exit code {run_result['return_code']}]",
+        "GRAY",
+    )
 
-    print("----------------- Run Finished -------------------")
+    print(log.fmt("".center(term_size.columns, "-"), "GRAY"))
 
     if run_result["return_code"] > 0:
-        log.error("Run Failed")
-        return run_result["return_code"]
+        log.error(f"Run Failed. Check Above. {run_status}")
+    else:
+        log.success(f"Ran Successfully {run_status}")
 
-    log.success("Run Successful!")
-    log.info(f"Command: {run_cmd}")
-    log.info(f"Took: {round(run_result['time_taken'], 4)}s")
-    return 0
+    compile_cmd = f"{compile_cmd} && " if compile_cmd else ""
+
+    log.info(f"Command: {log.fmt(compile_cmd + cast(str, run_cmd), 'GRAY')}")
+
+    input(log.fmt("⏵ Press Enter to Exit...", "GRAY"))
+
+    return run_result["return_code"]

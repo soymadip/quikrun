@@ -40,6 +40,11 @@ class RunResult(TypedDict):
     time_taken: float
 
 
+def scroll_up():
+    """Scroll up the terminal by 1 line"""
+    print("\033[1;1H\033[2J", end="")
+
+
 def get_shebang(file_path: Path) -> str:
     """Detect the shebang if present & return the interpreter path, else return empty str."""
     shebang_prefix = "#!"
