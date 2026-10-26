@@ -3,7 +3,8 @@ import sys
 from pathlib import Path
 from typing import Literal, cast
 
-from .lib.config import CmdVars, Platform, Shell, default_cmds
+from .config import CmdVars, Platform, Shell
+from .config.defaults import DEFAULT_CONF
 from .lib.logger import log
 from .lib.utils import (
     NA,
@@ -76,7 +77,7 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
     elif file["file_ext"]:
         # Resolve which command based on platform, shell.
         resolved_cmd = resolve_cmd(
-            config_obj=default_cmds,
+            config_obj=DEFAULT_CONF.commands,
             file_ext=file["file_ext"],
             shell=shell,
             platform=platform,
