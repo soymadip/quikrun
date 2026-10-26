@@ -42,7 +42,7 @@ class Logger:
         return self.__col.get(color, "") + text + self.__col["RESET"]
 
     def __log(
-        self, msg: str, level: Literal["info", "success", "warn", "error", "dim"]
+        self, level: Literal["info", "success", "warn", "error", "dim"], *msgs: str
     ):
         """Internal Central Logging Function"""
         match level:
@@ -62,22 +62,28 @@ class Logger:
                 prefix = "⏵"
                 color = "GRAY"
 
-        print(self.fmt(f"{prefix} {msg}", color), file=sys.stderr)
+        to_print = log.fmt(prefix, color)
 
-    def info(self, msg: str) -> None:
-        self.__log(msg, "info")
+        for msg in msgs:
+            to_print += " "
+            to_print += self.fmt(msg, color)
 
-    def success(self, msg: str) -> None:
-        self.__log(msg, "success")
+        print(to_print, file=sys.stderr)
 
-    def warn(self, msg: str) -> None:
-        self.__log(msg, "warn")
+    def info(self, *msg: str) -> None:
+        self.__log("info", *msg)
 
-    def error(self, msg: str) -> None:
-        self.__log(msg, "error")
+    def success(self, *msg: str) -> None:
+        self.__log("success", *msg)
 
-    def dim(self, msg: str) -> None:
-        self.__log(msg, "dim")
+    def warn(self, *msg: str) -> None:
+        self.__log("warn", *msg)
+
+    def error(self, *msg: str) -> None:
+        self.__log("error", *msg)
+
+    def dim(self, *msg: str) -> None:
+        self.__log("dim", *msg)
 
 
 # Make a Logger object

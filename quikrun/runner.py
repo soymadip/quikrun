@@ -32,11 +32,11 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
     # ------------- Validate Input --------------
 
     if not file_path.exists():
-        log.error(f"Given file doesn't exist! ({file_path})")
+        log.error("Given file doesn't exist:", log.fmt(str(file_path), "GRAY"))
         return 1
 
     if not file_path.is_file():
-        log.error("Given path is not a file!")
+        log.error("Given path is not a file:", log.fmt(str(file_path), "GRAY"))
         return 1
 
     # ----------- Construct Commands --------------
@@ -114,7 +114,7 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
 
     if compile_cmd:
         log.info("Compiling Your Code....")
-        log.info(f"Command: {log.fmt(cast(str, compile_cmd), 'GRAY')}")
+        log.info("Command:", log.fmt(cast(str, compile_cmd), "GRAY"))
 
         compile_result = run_command(cast(str, compile_cmd))
 
@@ -122,10 +122,11 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
             log.error("Failed to compile Your File. Check Logs Above!")
             return compile_result["return_code"]
 
-        cmp_time = f"[took {round(compile_result['time_taken'], 3)}s]"
-
-        log.success(f"Compilation Done. {log.fmt(cmp_time, 'GRAY')}")
-        log.info("Executing Compiled Binary.")
+        log.success(
+            "Compilation Done.",
+            log.fmt(f"[took {round(compile_result['time_taken'], 3)}s]", "GRAY"),
+        )
+        log.info("Executing Compiled Binary...")
 
     #
     # ------------- Code/Binary Execution --------------
@@ -154,8 +155,8 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
 
     compile_cmd = f"{compile_cmd} && " if compile_cmd else ""
 
-    log.info(f"Command: {log.fmt(compile_cmd + cast(str, run_cmd), 'GRAY')}")
+    log.info(f"Command: {log.fmt(compile_cmd + run_cmd, 'GRAY')}")
 
-    input(log.fmt("⏵ Press Enter to Exit...", "GRAY"))
+    _ = input(log.fmt("⏵ Press Enter to Exit...", "GRAY"))
 
     return run_result["return_code"]
