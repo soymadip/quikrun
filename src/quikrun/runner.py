@@ -15,7 +15,7 @@ from .lib.utils import (
 )
 
 
-def quick_run(file_path: Path, args: list[str] | None = None) -> int:
+def quick_run(file_path: Path, run_args: list[str] | None = None) -> int:
     """Quickly Run a file"""
 
     # Current Environment Info
@@ -24,6 +24,9 @@ def quick_run(file_path: Path, args: list[str] | None = None) -> int:
     shell: Shell = "posix"
 
     file_path = file_path.resolve().relative_to(cwd)
+
+    if not run_args:
+        run_args = []
 
     # ------------- Validate Input --------------
 
@@ -129,7 +132,9 @@ def quick_run(file_path: Path, args: list[str] | None = None) -> int:
     scroll_to_top()
     print(log.fmt(" Output ".center(term_size.columns, "-"), "GRAY"))
 
-    run_result = run_command(cast(str, run_cmd))
+    run_cmd = f"{cast(str, run_cmd)} {' '.join(arg for arg in run_args)}"
+
+    run_result = run_command(run_cmd)
 
     #
     # ------------------ Print Footer ------------------
