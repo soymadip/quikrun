@@ -47,7 +47,7 @@ class Logger:
         """Internal Central Logging Function"""
         match level:
             case "info":
-                prefix: str = "!"
+                prefix: str = "i"
                 color: Color = "BLUE"
             case "success":
                 prefix = "✓"

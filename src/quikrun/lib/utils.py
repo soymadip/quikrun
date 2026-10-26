@@ -40,7 +40,7 @@ class RunResult(TypedDict):
     time_taken: float
 
 
-def scroll_up():
+def scroll_to_top():
     """Scroll up the terminal by 1 line"""
     print("\033[1;1H\033[2J", end="")
 
