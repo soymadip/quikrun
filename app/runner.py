@@ -15,7 +15,7 @@ from .lib.utils import (
 )
 
 
-def quick_run(file_path: Path, run_args: list[str] | None = None) -> int:
+def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
     """Quickly Run a file"""
 
     # Current Environment Info
@@ -23,7 +23,7 @@ def quick_run(file_path: Path, run_args: list[str] | None = None) -> int:
     platform: Platform = cast(Platform, sys.platform.removesuffix("32"))
     shell: Shell = "posix"
 
-    file_path = file_path.resolve().relative_to(cwd)
+    file_path = Path(file_path).resolve().relative_to(cwd)
 
     if not run_args:
         run_args = []
