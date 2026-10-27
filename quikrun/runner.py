@@ -57,7 +57,7 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
         "file_name": file_path.name,
         "file_stem": file_path.stem,
         "file_slug": file_path.stem.replace(" ", "_"),
-        "file_ext": file_path.suffix.strip().strip("."),
+        "file_ext": file_path.suffix.strip().removeprefix("."),
         "out_dir": out_dir,
         "out_file": out_file,
         "platform": platform,
