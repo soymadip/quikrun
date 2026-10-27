@@ -7,10 +7,47 @@ from typing import Literal, TypedDict
 type CmdCommand = str | list[str] | dict[str, CmdCommand]
 type CmdConfig = dict[str, CmdCommand]
 
-type Platform = Literal["linux", "win", "darwin"]
-type Shell = Literal["posix", "cmd", "pwsh"]
+type Platform = Literal["linux", "win", "darwin", 'auto']
+type Shell = Literal["posix", "cmd", "pwsh", "auto"]
 
 type StrOrPath = str | Path
+
+
+@dataclass(kw_only=True)
+class Config:
+    """Configuration For Quikrun"""
+
+    # DONT FORGET TO UPDATE ResolvedConf AFTER CHANGE in this
+    shell: Shell | None = None
+    platform: Platform | None = None
+    clear_terminal: bool | Literal["scroll_up"] | None = None 
+    show_time_took: bool | None = None
+    show_command: bool | None = None
+    show_shell: bool | None = None
+    show_divider: bool | None = None
+    cache_dir: Path | str | None = None
+    cd_to_file_dir: bool | None = None
+    keep_build_artifacts: bool | None = None
+    auto_exit: Literal["always", "never", "on_success"] | None = None
+    commands: CmdConfig | None = None
+
+
+@dataclass(kw_only=True)
+class ResolvedConf:
+    """Resolved Configuration For Quikrun"""
+
+    shell: Shell
+    platform: Platform
+    clear_terminal: bool | Literal["scroll_up"]
+    show_time_took: bool
+    show_command: bool
+    show_shell: bool
+    show_divider: bool
+    cache_dir: Path | str  # related to cwd
+    cd_to_file_dir: bool
+    keep_build_artifacts: bool
+    auto_exit: Literal["always", "never", "on_success"]
+    commands: CmdConfig
 
 
 class CmdVars(TypedDict):
@@ -31,8 +68,3 @@ class CmdVars(TypedDict):
 
 
 UNQUOTED_VARS = frozenset(["file_shebang", "file_ext", "platform", "shell"])
-
-
-@dataclass(frozen=True)
-class Config:
-    commands: CmdConfig
