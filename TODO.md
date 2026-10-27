@@ -1,1 +1,2 @@
 - [ ] Update AUR workflow to produce default configuration file at each aur push as src
+- [ ] Record & put aschiischema in README
