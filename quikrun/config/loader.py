@@ -40,6 +40,46 @@ def _update_dict(
     return base_dict
 
 
+def _resolve_references(cmd_dict: dict[str, Any]) -> dict[str, Any]:
+    """Resolve any @ references up to 2 levels deep for strings, lists, and dicts."""
+
+    def resolve_item(item: Any, depth: int) -> Any:
+        if depth >= 3:
+            return item
+
+        # Handle string
+        if isinstance(item, str) and "@" in item:
+            ref_key = item.split("@")[-1]
+            if ref_key in cmd_dict:
+                return resolve_item(cmd_dict[ref_key], depth + 1)
+            else:
+                log.error(f"Couldn't find reference key: {ref_key}")
+                raise CfgLoadError(f"Reference key '{ref_key}' not found.")
+
+        # Handle lists
+        elif isinstance(item, list):
+            resolved_list = []
+            for sub_item in item:
+                res = resolve_item(sub_item, depth)
+                if isinstance(res, list):
+                    resolved_list.extend(res)
+                else:
+                    resolved_list.append(res)
+            return resolved_list
+
+        # dictionaries
+        elif isinstance(item, dict):
+            return {k: resolve_item(v, depth) for k, v in item.items()}
+
+        return item
+
+    temp_cmd_cfg = {}
+    for key, value in cmd_dict.items():
+        temp_cmd_cfg[key] = resolve_item(value, 0)
+
+    return temp_cmd_cfg
+
+
 def load_config(configs: CfgList) -> ResolvedConf:
     """
     Merge & Load Config from given config files
@@ -88,6 +128,7 @@ def load_config(configs: CfgList) -> ResolvedConf:
 
             except OSError as e:
                 log.error("Failed to Open Config File: ", log.fmt(str(file), "GRAY"))
+                log.error('Error:', str(e))
                 raise CfgLoadError
 
             if part:
@@ -108,5 +149,7 @@ def load_config(configs: CfgList) -> ResolvedConf:
                 raise CfgLoadError
 
             _update_dict(final_config, config)
+
+    final_config["commands"] = _resolve_references(final_config["commands"])
 
     return ResolvedConf(**final_config)
