@@ -2,6 +2,7 @@
 
 from collections.abc import Iterable
 from typing import Any, TypedDict, cast
+lazy import os
 lazy import shutil
 lazy import subprocess
 lazy from pathlib import Path
@@ -89,6 +90,20 @@ def get_avail_cmd(cfg_list: list[str]) -> str | NO_BIN_AVAIL:
     log.error("No suitable interpreter is not installed or not in PATH!")
     log.info(f"Please install one of: {bins}")
     return NO_BIN_AVAIL
+
+
+def get_usr_conf_home() -> Path:
+    """Get User's config dir. Makes it if doesn't exist"""
+    user_config_home = os.environ.get("XDG_CONFIG_HOME")
+
+    if not user_config_home:
+        user_config_home = Path.home() / ".config"
+    else:
+        user_config_home = Path(user_config_home)
+
+    user_config_home.mkdir(exist_ok=True, parents=True)
+
+    return user_config_home
 
 
 def resolve_cmd(
