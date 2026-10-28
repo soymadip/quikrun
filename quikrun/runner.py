@@ -18,13 +18,19 @@ from .lib.utils import (
 )
 
 
+type ExitCode = int
+
+
 def quick_run(
     file_path: str | Path,
     run_args: list[str] | None = None,
     extra_config: Config | None = None,
-    dry_run: bool = False,
-) -> int:
-    """Quickly Run a file"""
+    dry_run: bool = False,  # TODO
+) -> ExitCode:
+    """
+    Quickly Run a file
+    Returns Return Code of the code file
+    """
 
     # -------------- Transform Arguments ----------------
 
@@ -126,12 +132,6 @@ def quick_run(
 
     term_size = shutil.get_terminal_size()
 
-    # Clear the terminal
-    if config.clear_terminal == "scroll_up":
-        scroll_to_top()
-    elif config.clear_terminal:
-        run_command("clear" if config.shell == "posix" else "cls")
-
     # Create output directory
     # if compile command is present or run command uses output dir/file
     if compile_cmd or is_any_in(cast(str, run_cmd), ["{out_dir}", "{out_file}"]):
@@ -151,6 +151,7 @@ def quick_run(
         compile_result = run_command(cast(str, compile_cmd))
 
         if compile_result["return_code"] > 0:
+            print()
             log.error("Failed to compile Your File. Check Logs Above!")
             return compile_result["return_code"]
 
@@ -164,7 +165,12 @@ def quick_run(
     #
     # ------------- Code/Binary Execution --------------
 
-    scroll_to_top()
+    # Clear the terminal
+    if config.clear_terminal == "scroll_up":
+        scroll_to_top()
+    elif config.clear_terminal:
+        run_command("clear" if config.shell == "posix" else "cls")
+
     print(log.fmt(" Output ".center(term_size.columns, "-"), "GRAY"))
 
     run_result = run_command(cast(str, run_cmd))
