@@ -52,7 +52,7 @@ class ResolvedConf:
 
 class CmdVars(TypedDict):
     """Template Variables for Command Templates"""
-    
+
     platform: Platform  #   platform name (e.g., 'linux', 'win', 'darwin')
     shell: Shell  #         shell name (e.g., 'posix', 'cmd', 'pwsh')
 
