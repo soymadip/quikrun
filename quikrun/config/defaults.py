@@ -1,6 +1,17 @@
-from . import Config
+from .types import ResolvedConf
 
-DEFAULT_CONF: Config = Config(
+DEFAULT_CONF = ResolvedConf(
+    platform="auto",
+    shell="auto",
+    clear_terminal="scroll_up",
+    show_time_took=True,
+    show_command=True,
+    show_shell=True,
+    show_divider=True,
+    cache_dir=".quikrun",
+    cd_to_file_dir=False,
+    keep_build_artifacts=True,
+    auto_exit="never",
     commands={
         #
         # ---------------- Interpreted ---------------
@@ -15,26 +26,12 @@ DEFAULT_CONF: Config = Config(
         "lua": "lua {file_path}",
         "php": "php {file_path}",
         "pl": "perl {file_path}",
-        "py": {
-            "posix": {
-                "linux": "python3 {file_path}",
-                "darwin": "python3 {file_path}",
-                "win": "python {file_path}",
-            },
-            "cmd": "python {file_path}",
-            "pwsh": {
-                "linux": "python3 {file_path}",
-                "darwin": "python3 {file_path}",
-                "win": "python {file_path}",
-            },
-        },
+        "py": "python3 {file_path}",
         "r": "Rscript {file_path}",
         "rb": "ruby {file_path}",
         "sh": "bash {file_path}",
         "swift": "swift {file_path}",
         "ts": ["@js", "ts-node {file_path}"],
-        "mts": "@ts",
-        "zsh": "zsh {file_path}",
         #
         # ---------------- Compiled ---------------
         #
@@ -61,5 +58,5 @@ DEFAULT_CONF: Config = Config(
             "compile": "zig build-exe {file_path} -femit-bin={out_file}",
             "run": "{out_file}",
         },
-    }
+    },
 )

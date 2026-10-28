@@ -1,29 +1,34 @@
 import shutil
 import sys
 from pathlib import Path
-from typing import Literal, cast
+from typing import cast
 
-from .config import CmdVars, Platform, Shell
-from .config.defaults import DEFAULT_CONF
+from .config.loader import CfgList, CfgLoadError, load_config
+from .config.types import CmdVars, Platform, Config
 from .lib.logger import log
 from .lib.utils import (
     NA,
+    ResolvedCmd,
     get_shebang,
     is_any_in,
     resolve_cmd,
     run_command,
     scroll_to_top,
+    get_usr_conf_home,
 )
 
 
-def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
+def quick_run(
+    file_path: str | Path,
+    run_args: list[str] | None = None,
+    extra_config: Config | None = None,
+    dry_run: bool = False
+) -> int:
     """Quickly Run a file"""
 
-    # Current Environment Info
-    cwd = Path.cwd()
-    platform: Platform = cast(Platform, sys.platform.removesuffix("32"))
-    shell: Shell = "posix"
+    # -------------- Transform Arguments ----------------
 
+    cwd = Path.cwd()
     file_path = Path(file_path).resolve().relative_to(cwd)
 
     if not run_args:
@@ -39,14 +44,36 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
         log.error("Given path is not a file:", log.fmt(str(file_path), "GRAY"))
         return 1
 
-    # ----------- Construct Commands --------------
+    # --------------- Config Resolution ---------------
+
+    config_files: CfgList = [
+        extra_config,  # This Takes most priority, wlill be passed by CLI flags or method caller
+        Path("quikrun.toml"),
+        (Path("pyproject.toml"), "tool.quikrun"),
+        (Path("Cargo.toml"), "package.metadata.quikrun"),
+        (Path("package.json"), "quikrun"),
+        get_usr_conf_home() / "quikrun" / "config.toml",  # User Config
+        Path("/etc/quikrun/config.toml"),  # Global Config
+    ]
+
+    try:
+        config = load_config(config_files)
+    except CfgLoadError:
+        return 1
+
+    # Current Environment Info
+    if config.platform == "auto":
+        config.platform = cast(Platform, sys.platform.removesuffix("32"))
+
+    if config.shell == "auto":
+        config.shell = "cmd" if config.platform == "win" else "posix"
 
     # Commands
     compile_cmd: str | NA = ""
     run_cmd: str | NA = ""
 
     # Output Dir, Path
-    out_dir = Path(".quikrun")
+    out_dir = Path(config.cache_dir)
     out_file = out_dir / file_path.stem
 
     # File Related Info
@@ -60,9 +87,13 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
         "file_ext": file_path.suffix.strip().removeprefix("."),
         "out_dir": out_dir,
         "out_file": out_file,
-        "platform": platform,
-        "shell": shell,
+        "platform": config.platform,
+        "shell": config.shell,
+        "run_args": run_args
     }
+
+    # ----------- Construct Commands --------------
+    
 
     # Error if file has neither shebang nor extension
     if not file["file_shebang"] and not file["file_ext"]:
@@ -77,28 +108,28 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
     elif file["file_ext"]:
         # Resolve which command based on platform, shell.
         resolved_cmd = resolve_cmd(
-            config_obj=DEFAULT_CONF.commands,
             file_ext=file["file_ext"],
-            shell=shell,
-            platform=platform,
+            config_obj=config.commands,
+            shell=config.shell,
+            platform=config.platform,
             variables=file,
         )
 
         compile_cmd = resolved_cmd["compile"]
         run_cmd = resolved_cmd["run"]
+        display_cmd = resolved_cmd['display_cmd']
 
         # apparently walrus operator makes type checker useless!
         if (compile_cmd is NA) or (run_cmd is NA):
             return 1
 
     term_size = shutil.get_terminal_size()
-    clear_term: bool | Literal["scroll_up"] = "scroll_up"
 
     # Clear the terminal
-    if clear_term == "scroll_up":
+    if config.clear_terminal == "scroll_up":
         scroll_to_top()
-    elif clear_term:
-        run_command("clear" if shell == "posix" else "cls")
+    elif config.clear_terminal:
+        run_command("clear" if config.shell == "posix" else "cls")
 
     # Create output directory
     # if compile command is present or run command uses output dir/file
@@ -125,6 +156,7 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
         log.success(
             "Compilation Done.",
             log.fmt(f"[took {round(compile_result['time_taken'], 3)}s]", "GRAY"),
+            log.fmt(f"[exit code {round(compile_result['return_code'], 3)}]", "GRAY")
         )
         log.info("Executing Compiled Binary...")
 
@@ -133,10 +165,8 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
 
     scroll_to_top()
     print(log.fmt(" Output ".center(term_size.columns, "-"), "GRAY"))
-
-    run_cmd = f"{cast(str, run_cmd)} {' '.join(arg for arg in run_args)}"
-
-    run_result = run_command(run_cmd)
+    
+    run_result = run_command(cast(str, run_cmd))
 
     #
     # ------------------ Print Footer ------------------
@@ -155,7 +185,7 @@ def quick_run(file_path: str | Path, run_args: list[str] | None = None) -> int:
 
     compile_cmd = f"{compile_cmd} && " if compile_cmd else ""
 
-    log.info(f"Command: {log.fmt(compile_cmd + run_cmd, 'GRAY')}")
+    log.info(f"Command: {log.fmt(display_cmd, 'GRAY')}")
 
     _ = input(log.fmt("⏵ Press Enter to Exit...", "GRAY"))
 
