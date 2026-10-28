@@ -6,7 +6,6 @@ DEFAULT_CONF = ResolvedConf(
     clear_terminal="scroll_up",
     show_time_took=True,
     show_command=True,
-    show_shell=True,
     show_divider=True,
     cache_dir=".quikrun",
     cd_to_file_dir=False,
