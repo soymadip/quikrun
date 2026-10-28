@@ -11,6 +11,8 @@ wiki/
 node_modules/
 quikrun.spec
 .winget-pkgs
+default_config.*
+quikrun.json
 
 # Virtual environments
 .venv
