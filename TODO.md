@@ -1,5 +1,6 @@
 - [ ] Setup Test to compare RawConf & ResolvedConf are same (without the None type)
 - [ ] Update AUR workflow to produce default configuration file at each aur push as src
+- [ ] Fix sync docs script to correctly extract info
 - [ ] Record & put aschiischema in README
 - [ ] Dart, Yarn config file support. Need to add pyyaml dep so holding until someone requests
 - [ ] Add caching for resoluted config
