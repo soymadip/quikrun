@@ -22,7 +22,7 @@ def quick_run(
     file_path: str | Path,
     run_args: list[str] | None = None,
     extra_config: Config | None = None,
-    dry_run: bool = False
+    dry_run: bool = False,
 ) -> int:
     """Quickly Run a file"""
 
@@ -36,12 +36,14 @@ def quick_run(
 
     # ------------- Validate Input --------------
 
+    log.info("Checking given path: ", log.fmt(str(file_path), "GRAY"))
+
     if not file_path.exists():
-        log.error("Given file doesn't exist:", log.fmt(str(file_path), "GRAY"))
+        log.error("Given path doesn't exist!")
         return 1
 
     if not file_path.is_file():
-        log.error("Given path is not a file:", log.fmt(str(file_path), "GRAY"))
+        log.error("Given path is not a file!")
         return 1
 
     # --------------- Config Resolution ---------------
@@ -89,11 +91,10 @@ def quick_run(
         "out_file": out_file,
         "platform": config.platform,
         "shell": config.shell,
-        "run_args": run_args
+        "run_args": run_args,
     }
 
     # ----------- Construct Commands --------------
-    
 
     # Error if file has neither shebang nor extension
     if not file["file_shebang"] and not file["file_ext"]:
@@ -117,7 +118,7 @@ def quick_run(
 
         compile_cmd = resolved_cmd["compile"]
         run_cmd = resolved_cmd["run"]
-        display_cmd = resolved_cmd['display_cmd']
+        display_cmd = resolved_cmd["display_cmd"]
 
         # apparently walrus operator makes type checker useless!
         if (compile_cmd is NA) or (run_cmd is NA):
@@ -156,7 +157,7 @@ def quick_run(
         log.success(
             "Compilation Done.",
             log.fmt(f"[took {round(compile_result['time_taken'], 3)}s]", "GRAY"),
-            log.fmt(f"[exit code {round(compile_result['return_code'], 3)}]", "GRAY")
+            log.fmt(f"[exit code {round(compile_result['return_code'], 3)}]", "GRAY"),
         )
         log.info("Executing Compiled Binary...")
 
@@ -165,7 +166,7 @@ def quick_run(
 
     scroll_to_top()
     print(log.fmt(" Output ".center(term_size.columns, "-"), "GRAY"))
-    
+
     run_result = run_command(cast(str, run_cmd))
 
     #
@@ -185,7 +186,7 @@ def quick_run(
 
     compile_cmd = f"{compile_cmd} && " if compile_cmd else ""
 
-    log.info(f"Command: {log.fmt(display_cmd, 'GRAY')}")
+    log.info(f"Command: {log.fmt(cast(str, display_cmd), 'GRAY')}")
 
     _ = input(log.fmt("⏵ Press Enter to Exit...", "GRAY"))
 
