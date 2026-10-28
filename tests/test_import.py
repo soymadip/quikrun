@@ -8,7 +8,8 @@ import pytest
     [
         "quikrun",
         "quikrun.__main__",
-        "quikrun.main",
+        "quikrun.cli",
+        "quikrun.runner"
     ],
 )
 def test_import(module):
