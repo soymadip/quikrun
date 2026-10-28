@@ -8,7 +8,6 @@ from .config.types import CmdVars, Platform, Config
 from .lib.logger import log
 from .lib.utils import (
     NA,
-    ResolvedCmd,
     get_shebang,
     is_any_in,
     resolve_cmd,
@@ -42,7 +41,7 @@ def quick_run(
 
     # ------------- Validate Input --------------
 
-    log.info("Checking given path: ", log.fmt(str(file_path), "GRAY"))
+    log.info("Checking given path:", log.fmt(str(file_path), "GRAY"))
 
     if not file_path.exists():
         log.error("Given path doesn't exist!")
