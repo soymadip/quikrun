@@ -7,7 +7,7 @@ src_dir = str(Path(__file__).parent.parent.resolve())
 if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
-from quikrun.metadata.cmd_templates import cmd_templates  # noqa: E402
+from quikrun.metadata.cmd_templates import cmd_templates
 
 NAME_MAP = {
     "linux": "Linux",
@@ -49,7 +49,7 @@ def format_interpreted(val):
                 formatted_groups[fmt].append(name)
 
             if len(formatted_groups) == 1:
-                return list(formatted_groups.keys())[0]
+                return next(iter(formatted_groups.keys()))
 
             parts = []
             for fmt, names in formatted_groups.items():

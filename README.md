@@ -12,6 +12,9 @@
 - **Highly Configurable:** Add new languages or override behavior to suit your own taste
 - **Argument Forwarding:** Safely forward arguments/flags to your scripts easily, with support for POSIX `--` separator.
 
+> [!NOTE]  
+> This branch holds development of rewrite from scratch replacing original vibe coded slop.
+
 ---
 
 ## Installation

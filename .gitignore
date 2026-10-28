@@ -16,3 +16,5 @@ quikrun.spec
 .venv
 .quikrun
 ss/*
+ss.*
+ss

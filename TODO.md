@@ -1,2 +1,6 @@
-- [ ] The compiled binary and .quikkrun is in file dir but all output and run is in pwd? why
-- [ ] .quikrun dir is being created even for interpreted languages like python
+- [ ] Expand the @ext notations in command templates
+- [ ] Update AUR workflow to produce default configuration file at each aur push as src
+- [ ] Record & put aschiischema in README
+- [ ] Setup Test to compare RawConf & ResolvedConf are same (without the None type)
+- [ ] Dart, Yarn config file support. Need to add pyyaml dep so holding until someone requests
+- [ ] Add caching for resoluted config

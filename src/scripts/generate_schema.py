@@ -9,7 +9,7 @@ if src_dir not in sys.path:
     sys.path.insert(0, src_dir)
 
 # Import the load function and metadata from your runtime codebase
-from quikrun.metadata import CONFIG_METADATA  # noqa: E402
+from quikrun.metadata import CONFIG_METADATA
 
 
 def main() -> None:
