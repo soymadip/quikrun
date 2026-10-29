@@ -45,7 +45,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -94,10 +94,10 @@ jobs:
       url: https://pypi.org/project/${{ github.event.repository.name }}
 
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v8.2.0
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           cache-python: true
           activate-environment: "true"
@@ -109,18 +109,19 @@ jobs:
         uses: pypa/gh-action-pypi-publish@release/v1
 
   update-aur:
+    runs-on: ubuntu-latest
     needs: [get-info, update-pypi]
     if: |
       always() && 
       needs.get-info.result == 'success' && 
       (needs.update-pypi.result == 'success' || needs.update-pypi.result == 'skipped')
-    runs-on: ubuntu-latest
     environment:
       name: aur
       url: "https://aur.archlinux.org/packages/${{ github.event.repository.name }}"
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -211,7 +212,7 @@ jobs:
 
       - name: Publish to AUR
         if: env.SKIP_UPDATE == 'false'
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
+        uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
         with:
           pkgname: ${{ env.PKGNAME }}
           pkgbuild: ./PKGBUILD
