@@ -2,6 +2,7 @@
 import json
 import sys
 from pathlib import Path
+
 from pydantic import TypeAdapter
 
 # Resolve project root

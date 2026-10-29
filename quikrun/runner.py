@@ -4,18 +4,17 @@ from pathlib import Path
 from typing import cast
 
 from .config.loader import CfgList, CfgLoadError, load_config
-from .config.types import CmdVars, Platform, Config
+from .config.types import CmdVars, Config, Platform
 from .lib.logger import log
 from .lib.utils import (
     NA,
     get_shebang,
+    get_usr_conf_home,
     is_any_in,
     resolve_cmd,
     run_command,
     scroll_to_top,
-    get_usr_conf_home,
 )
-
 
 type ExitCode = int
 

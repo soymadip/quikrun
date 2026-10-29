@@ -1,13 +1,13 @@
 import copy
-lazy import tomllib
-lazy import json
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
+lazy import json
+lazy import tomllib
 
+from ..lib.logger import log
 from .defaults import DEFAULT_CONF
 from .types import Config, ResolvedConf
-from ..lib.logger import log
 
 type CfgList = list[None | Config | Path | tuple[Path, str]]
 
@@ -53,7 +53,7 @@ def _resolve_references(cmd_dict: dict[str, Any]) -> dict[str, Any]:
             if ref_key in cmd_dict:
                 return resolve_item(cmd_dict[ref_key], depth + 1)
             else:
-                log.error(f"Couldn't find reference key: {ref_key}")
+                log.error(f"Couldn't find reference key: {ref_key}") 
                 raise CfgLoadError(f"Reference key '{ref_key}' not found.")
 
         # Handle lists

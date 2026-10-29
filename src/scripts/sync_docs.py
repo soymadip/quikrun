@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-import sys
-from pathlib import Path
-from typing import Any, Literal, Union, get_origin, get_args
 import dataclasses
 import re
+import sys
+from pathlib import Path
+from typing import Any, Literal, Union, get_args, get_origin
 
 # Add project root to sys.path
 PROJECT_ROOT = Path(__file__).resolve().parents[2]

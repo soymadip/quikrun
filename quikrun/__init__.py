@@ -4,10 +4,10 @@ import sys
 from importlib import metadata
 from importlib.metadata import PackageNotFoundError
 
-from .runner import quick_run
 from .config.types import Config
+from .runner import quick_run
 
-__all__ = ["quick_run", "Config"]
+__all__ = ["Config", "quick_run"]
 
 if sys.version_info < (3, 15):  # noqa: UP036
     sys.stderr.write("Error: quikrun requires Python 3.15 or newer.\n")

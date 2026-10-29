@@ -1,7 +1,6 @@
 """Utility Methods for quikrun."""
 
 from collections.abc import Iterable
-import shlex
 from typing import Any, TypedDict, cast
 lazy import os
 lazy import shutil
