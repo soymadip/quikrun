@@ -17,6 +17,7 @@ from quikrun.config.types import Config
 def main() -> None:
     adapter = TypeAdapter(Config)
     config_schema_dict = adapter.json_schema()
+    config_schema_dict["$id"] = "https://www.schemastore.org/quikrun.json"
 
     output_path = PROJECT_ROOT / "quikrun.json"
     output_path.write_text(
