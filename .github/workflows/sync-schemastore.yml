@@ -66,7 +66,9 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: |
           cp quikrun.json schemastore/src/schemas/json/quikrun.json
-          cp default_config.toml schemastore/src/test/quikrun/quikrun.toml
+          
+          echo '#:schema ../../schemas/json/quikrun.json' > schemastore/src/test/quikrun/quikrun.toml
+          cat default_config.toml >> schemastore/src/test/quikrun/quikrun.toml
 
       - name: Format and Validate
         if: steps.check.outputs.changed == 'true'
@@ -89,14 +91,16 @@ jobs:
 
           BRANCH_NAME="update-quikrun-schema-${{ github.sha }}"
           git checkout -b $BRANCH_NAME
-          git add src/schemas/json/quikrun.json
+          
+          # Stage both the schema and the test file
+          git add src/schemas/json/quikrun.json src/test/quikrun/quikrun.toml
 
           if git diff --staged --quiet; then
-            echo "No schema changes detected after formatting. Skipping PR creation."
+            echo "No changes detected after formatting. Skipping PR creation."
             exit 0
           fi
 
-          git commit -m "Update quikrun schema to latest release"
+          git commit -m "Update quikrun configuration schema & test file"
           git push fork $BRANCH_NAME
 
           # Create Pull Request on the upstream SchemaStore repo using GitHub CLI
