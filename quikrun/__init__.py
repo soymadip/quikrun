@@ -9,6 +9,8 @@ from .runner import quick_run
 
 __all__ = ["Config", "quick_run"]
 
+__version__ = "3.0.3"
+
 if sys.version_info < (3, 15):  # noqa: UP036
     sys.stderr.write("Error: quikrun requires Python 3.15 or newer.\n")
     sys.exit(1)
@@ -16,4 +18,4 @@ if sys.version_info < (3, 15):  # noqa: UP036
 try:
     __version__ = metadata.version("quikrun")
 except PackageNotFoundError:
-    __version__ = "unknown"
+    pass
