@@ -9,7 +9,7 @@ from .runner import quick_run
 
 __all__ = ["Config", "quick_run"]
 
-__version__ = "3.0.3"
+__version__ = "3.0.4"
 
 if sys.version_info < (3, 15):  # noqa: UP036
     sys.stderr.write("Error: quikrun requires Python 3.15 or newer.\n")
