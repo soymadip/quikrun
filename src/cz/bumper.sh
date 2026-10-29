@@ -18,9 +18,9 @@ declare -A VERSION_FILES
 NEW_VERSION="${1:-$CZ_PRE_NEW_VERSION}"
 
 VERSION_FILES=(
-    ["pyproject.toml"]='^version = "[^"]+" > version = "{{new_version}}"'
+    ["pyproject.toml"]='^version[[:space:]]*=[[:space:]]*"[^"]+" > version = "{{new_version}}"'
     ["PKGBUILD"]='^pkgver=.* > pkgver={{new_version}};^pkgrel=.* > pkgrel=1'
-    ["quikrun/__init__.py"]='^__version__ = "[^"]+" > __version__ = "{{new_version}}"'
+    ["quikrun/__init__.py"]='^__version__[[:space:]]*=[[:space:]]*"[^"]+" > __version__ = "{{new_version}}"'
 )
 
 #==================== Helpers ======================
