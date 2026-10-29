@@ -105,7 +105,7 @@ jobs:
       - name: Build
         run: uv build
 
-      - name: Publish
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
 
   update-aur:
@@ -191,7 +191,7 @@ jobs:
             -e VERSION="${{ env.VERSION }}" \
             -e IS_MANUAL="${{ env.IS_MANUAL }}" \
             archlinux:base-devel sh -c '
-              pacman -Sy --noconfirm pacman-contrib git
+              pacman -Sy --noconfirm pacman-contrib git curl
               useradd -m builduser
               chown -R builduser:builduser .
 
@@ -202,8 +202,20 @@ jobs:
                 sed -i "s/^pkgrel=.*$/pkgrel=1/" PKGBUILD
               fi
 
-              # Generate new checksums and .SRCINFO as builduser
-              su builduser -c "updpkgsums"
+              # Wait for GitHub release tarball to become available (handles 404 race condition)
+              echo "Waiting for GitHub release tarball to be ready..."
+              su builduser -c "
+                for i in $(seq 1 12); do
+                  if updpkgsums; then
+                    exit 0
+                  fi
+                  echo \"Attempt \$i: Tarball not ready yet, retrying in 10s...\"
+                  sleep 10
+                done
+                echo \"Error: Failed to fetch tarball after multiple attempts.\"
+                exit 1
+              "
+
               su builduser -c "makepkg --printsrcinfo > .SRCINFO"
 
               # Fix permissions for the GitHub runner user (UID 1001)
@@ -223,7 +235,7 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
       - name: Trigger MyRepo Build
-        if: success()
+        if: success() && env.SKIP_UPDATE == 'false'
         uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.REPO_ACCESS_TOKEN }}
