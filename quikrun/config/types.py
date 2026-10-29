@@ -9,6 +9,15 @@ type CmdConfig = dict[str, CmdCommand]
 
 type Platform = Literal["linux", "win", "darwin", "auto"]
 type Shell = Literal["posix", "cmd", "pwsh", "auto"]
+
+
+class ShellMap(TypedDict, total=False):
+    linux: str
+    darwin: str
+    win: str
+
+
+type ShellConfig = Shell | ShellMap
 type AutoExit = Literal["always", "never", "on_success"]
 
 type StrOrPath = str | Path
@@ -19,7 +28,7 @@ class Config:
     """Configuration For Quikrun"""
 
     # DONT FORGET TO UPDATE ResolvedConf AFTER CHANGE in this
-    shell: Shell | None = field(
+    shell: ShellConfig | None = field(
         default=None,
         metadata={"description": "Which shell to use."},
     )

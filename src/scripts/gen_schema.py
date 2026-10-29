@@ -14,9 +14,22 @@ if str(PROJECT_ROOT) not in sys.path:
 from quikrun.config.types import Config
 
 
+def remove_nonstandard_formats(schema: object) -> None:
+    if isinstance(schema, dict):
+        if schema.get("format") == "path":
+            schema.pop("format")
+        for value in schema.values():
+            remove_nonstandard_formats(value)
+    elif isinstance(schema, list):
+        for value in schema:
+            remove_nonstandard_formats(value)
+
+
 def main() -> None:
     adapter = TypeAdapter(Config)
     config_schema_dict = adapter.json_schema()
+    remove_nonstandard_formats(config_schema_dict)
+    config_schema_dict["$schema"] = "http://json-schema.org/draft-07/schema#"
     config_schema_dict["$id"] = "https://www.schemastore.org/quikrun.json"
 
     output_path = PROJECT_ROOT / "quikrun.json"

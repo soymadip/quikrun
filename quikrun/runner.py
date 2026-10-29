@@ -71,7 +71,11 @@ def quick_run(
     if config.platform == "auto":
         config.platform = cast(Platform, sys.platform.removesuffix("32"))
 
-    if config.shell == "auto":
+    if isinstance(config.shell, dict):
+        config.shell = config.shell.get(config.platform) or (
+            "cmd" if config.platform == "win" else "posix"
+        )
+    elif config.shell == "auto":
         config.shell = "cmd" if config.platform == "win" else "posix"
 
     # Commands
