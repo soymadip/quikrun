@@ -79,7 +79,7 @@ commitizen:
         ->'
       name: footer
       type: input
-  gpg_sign: true
+  gpg_sign: false
   legacy_tag_formats:
   - $version
   name: cz_customize
@@ -91,5 +91,5 @@ commitizen:
   tag_format: v$version
   template: src/cz/changelog.j2
   update_changelog_on_bump: false
-  version: 3.0.0
+  version: 3.0.1
   version_scheme: semver
