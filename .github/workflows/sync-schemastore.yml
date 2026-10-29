@@ -23,6 +23,9 @@ jobs:
       - name: Generate Schema
         run: uv run src/scripts/gen_schema.py
 
+      - name: Generate Test Config File
+        run: uv run src/scripts/gen_default_config.py
+
       - name: Check for changes
         id: check
         run: |
@@ -59,10 +62,11 @@ jobs:
           cd schemastore
           bun install
 
-      - name: Copy updated schema
+      - name: Copy updated schema & config file
         if: steps.check.outputs.changed == 'true'
         run: |
           cp quikrun.json schemastore/src/schemas/json/quikrun.json
+          cp default_config.toml schemastore/src/test/quikrun/quikrun.toml
 
       - name: Format and Validate
         if: steps.check.outputs.changed == 'true'
@@ -99,6 +103,6 @@ jobs:
           gh pr create \
             --repo SchemaStore/SchemaStore \
             --title "Update quikrun configuration schema" \
-            --body "Automatically synced schema changes from the quikrun repository." \
+            --body "Synced schema changes from the quikrun repository." \
             --head "mydehq:$BRANCH_NAME" \
             --base "master"
