@@ -21,7 +21,27 @@ class Config:
     # DONT FORGET TO UPDATE ResolvedConf AFTER CHANGE in this
     shell: Shell | None = field(
         default=None,
-        metadata={"description": "Which shell to use."},
+        metadata={
+            "description": "Which shell to use.",
+            "json_schema_extra": {
+                "anyOf": [
+                    {
+                        "enum": ["posix", "cmd", "pwsh", "auto"],
+                        "type": "string",
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "linux": {"type": "string"},
+                            "darwin": {"type": "string"},
+                            "win": {"type": "string"},
+                        },
+                        "additionalProperties": False,
+                    },
+                    {"type": "null"},
+                ]
+            },
+        },
     )
     platform: Platform | None = field(
         default=None,

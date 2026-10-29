@@ -25,38 +25,10 @@ def remove_nonstandard_formats(schema: object) -> None:
             remove_nonstandard_formats(value)
 
 
-def add_platform_shell_mapping(schema: dict[str, object]) -> None:
-    properties = schema.get("properties")
-    if not isinstance(properties, dict):
-        return
-
-    shell = properties.get("shell")
-    if not isinstance(shell, dict):
-        return
-
-    alternatives = shell.get("anyOf")
-    if not isinstance(alternatives, list):
-        return
-
-    alternatives.insert(
-        1,
-        {
-            "type": "object",
-            "properties": {
-                "linux": {"type": "string"},
-                "darwin": {"type": "string"},
-                "win": {"type": "string"},
-            },
-            "additionalProperties": False,
-        },
-    )
-
-
 def main() -> None:
     adapter = TypeAdapter(Config)
     config_schema_dict = adapter.json_schema()
     remove_nonstandard_formats(config_schema_dict)
-    add_platform_shell_mapping(config_schema_dict)
     config_schema_dict["$schema"] = "http://json-schema.org/draft-07/schema#"
     config_schema_dict["$id"] = "https://www.schemastore.org/quikrun.json"
 
