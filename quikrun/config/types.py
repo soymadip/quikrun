@@ -88,7 +88,7 @@ class ResolvedConf:
     cache_dir: Path | str  # related to cwd
     cd_to_file_dir: bool
     keep_build_artifacts: bool
-    auto_exit: Literal["always", "never", "on_success"]
+    auto_exit: AutoExit
     commands: CmdConfig
 
 
