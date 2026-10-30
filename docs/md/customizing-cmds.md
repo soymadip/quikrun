@@ -1,12 +1,11 @@
 # Customizing Commands
 
-If your language is not listed, or if you want to override the default command for a language, simply add it to your [config](configuration):
+To override the default command for a supported language, add it to your [config](configuration):
 
 ```toml
 # using quikrun.toml
 [commands]
 py = "python3 {file_path}"   # overrides default
-ext = "your-cmd {file_path}" # Register new .ext file
 
 # using pyproject.toml
 [tool.quikrun.commands]
@@ -24,8 +23,8 @@ These will be replaced with the actual values during command execution.
 
 | Placeholder      | Value                                                                |
 | ---------------- | -------------------------------------------------------------------- |
-| `{file_file}`    | Relative path to the given file (<small>quoted</small>)              |
-| `{file_dir}`     | Relative path of dir containing the file (<small>uoted</small>)      |
+| `{file_path}`    | Path to the given file (<small>quoted</small>)                       |
+| `{file_dir}`     | Path to the dir containing the file (<small>quoted</small>)   |
 | `{file_name}`    | name of the given file (e.g. `main.py`) (<small>quoted</small>)      |
 | `{file_stem}`    | filename without its extension (e.g. `main`) (<small>quoted</small>) |
 | `{file_slug}`    | file name without spaces (e.g., 'my file.py' -> 'my_file')           |
@@ -48,7 +47,7 @@ c = { compile = "gcc -Wall -Wextra {file_path} -o {out_file}", run = "{out_file}
 
 ## Platform & Shell Specific Commands
 
-There are different shells and OSs, You can define which command runs on which shell and OS.
+You can define which command runs on which shell or operating system.
 
 - **Shell Families:** `posix` (bash, zsh, sh), `cmd` (Windows CMD), `pwsh` (PowerShell Core or 7+).
 - **OS Platforms:** `linux`, `darwin`, `win`.

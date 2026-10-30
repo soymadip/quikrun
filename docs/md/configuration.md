@@ -124,13 +124,9 @@ If anything other than these are given, quikrun will use default shell as per th
 - `sh` on linux/macos
 - `%COMSPEC%` on windows, which is usually cmd.exe
 
-The value of the config key can be a string (e.g. `"pwsh"`) or a table specifying different shells for different platforms (`linux`, `darwin`, `win`).  
-If not set, uses default.
+The value of `shell` must be one of the supported shell names above. If not set, quikrun uses the platform default.
 
 ```toml
-# Custom shell configuration example
-shell = { linux = "/usr/bin/zsh", win = "pwsh.exe" }  # will use default `sh` in macos
-
-# Or simply a string, will use pwsh for all platforms
+# Use PowerShell for all platforms
 shell = "pwsh"
 ```
