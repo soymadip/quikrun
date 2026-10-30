@@ -1,7 +1,7 @@
 # Maintainer: Soumadip Das <soumadip+github@zohomail.in>
 pkgname=quikrun
-pkgver=3.1.1
-pkgrel=2
+pkgver=3.1.2
+pkgrel=1
 pkgdesc="Run your code without hassle"
 arch=("any")
 url="https://github.com/soymadip/quikrun"
