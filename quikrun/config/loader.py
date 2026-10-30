@@ -122,13 +122,13 @@ def load_config(configs: CfgList) -> ResolvedConf:
                             config = json.load(f)
 
             except (tomllib.TOMLDecodeError, json.JSONDecodeError) as e:
-                log.error("Invalid Syntax in Config:", log.fmt(str(file), "GRAY"))
-                log.error("Error:", str(e))
+                log.error(f"Invalid Syntax in Config: {log.fmt(str(file), 'GRAY')}")
+                log.error(f"Error: {e}")
                 raise CfgLoadError
 
             except OSError as e:
-                log.error("Failed to Open Config File: ", log.fmt(str(file), "GRAY"))
-                log.error('Error:', str(e))
+                log.error(f"Failed to Open Config File: {log.fmt(str(file), 'GRAY')}")
+                log.error(f"Error: {e}")
                 raise CfgLoadError
 
             if part:
@@ -143,9 +143,11 @@ def load_config(configs: CfgList) -> ResolvedConf:
                 config = asdict(Config(**config))
             except TypeError as e:
                 log.error(
-                    "invalid Keys detected in Config file:", log.fmt(str(file), "GRAY")
+                    f"invalid Keys detected in Config file: {log.fmt(str(file), 'GRAY')}"
                 )
-                log.error("Error:", str(e).removeprefix("Config.__init__()").strip())
+                log.error(
+                    f"Error: {str(e).removeprefix('Config.__init__()').strip()}"
+                )
                 raise CfgLoadError
 
             _update_dict(final_config, config)

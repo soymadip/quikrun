@@ -291,13 +291,13 @@ jobs:
           echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
           echo "| **PyPI** (Python Package) | $(format_status "$PYPI_STATUS") | [View on PyPI](https://pypi.org/project/$PKGNAME/$VERSION/) |" >> $GITHUB_STEP_SUMMARY
           echo "| **AUR** (Arch Linux) | $(format_status "$AUR_STATUS") | [View on AUR](https://aur.archlinux.org/packages/$PKGNAME) |" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ -n "$WINGET_PR_URL" ] && [ "$WINGET_PR_URL" != "null" ]; then
             WINGET_LINK="[View WinGet PR]($WINGET_PR_URL)"
           else
             WINGET_LINK="[View on Winstall](https://winstall.app/apps/${{ github.repository_owner }}.$PKGNAME)"
           fi
-          
+
           echo "| **WinGet** (Windows Package) | $(format_status "$WINGET_STATUS") | $WINGET_LINK |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version Released:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
