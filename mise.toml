@@ -30,7 +30,7 @@ run = [{ task = "lint" }, { task = "format" }]
 
 [tasks.build]
 description = "Build standalone executable"
-run = "uv run nuitka --onefile --assume-yes-for-downloads --output-filename=quikrun --output-dir=dist quikrun/__main__.py --include-package=quikrun"
+run = "uv run nuitka --onefile --assume-yes-for-downloads --python-flag=-m --output-filename=quikrun --output-dir=dist quikrun"
 
 [tasks.tests]
 description = "Run test suite"
