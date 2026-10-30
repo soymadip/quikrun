@@ -282,7 +282,7 @@ jobs:
               failure) echo "❌ Failed" ;;
               cancelled) echo "⚠️ Cancelled" ;;
               *) echo "❓ Unknown ($1)" ;;
-            }
+            esac
           }
 
           echo "## Package Release Summary" >> $GITHUB_STEP_SUMMARY
