@@ -1,21 +1,27 @@
 """Utility Methods for quikrun."""
 
+import os
+import shutil
+import subprocess
 from collections.abc import Iterable
+from pathlib import Path
+from shlex import quote
+from time import perf_counter
 from typing import Any, TypedDict, cast
-lazy import os
-lazy import shutil
-lazy import subprocess
-lazy from pathlib import Path
-lazy from shlex import quote
-lazy from time import perf_counter
 
 from ..config.types import UNQUOTED_VARS, CmdCommand, CmdVars
 from .logger import log
 
+""" 
 # sentinel Types
 INVALID_KEY = sentinel("INVALID_KEY")
 INVALID_DATA_TYPE = sentinel("INVALID_DATA_TYPE")
 NO_BIN_AVAIL = sentinel("NO_BIN_AVAIL")
+"""
+
+type INVALID_KEY = None
+type INVALID_DATA_TYPE = None
+type NO_BIN_AVAIL = None
 
 
 type NA = None | NO_BIN_AVAIL | INVALID_KEY | INVALID_DATA_TYPE

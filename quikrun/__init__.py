@@ -11,8 +11,8 @@ __all__ = ["Config", "quick_run"]
 
 __version__ = "3.1.1"
 
-if sys.version_info < (3, 15):  # noqa: UP036
-    sys.stderr.write("Error: quikrun requires Python 3.15 or newer.\n")
+if sys.version_info < (3, 14):  # noqa: UP036
+    sys.stderr.write("Error: quikrun requires Python 3.14 or newer.\n")
     sys.exit(1)
 
 try:

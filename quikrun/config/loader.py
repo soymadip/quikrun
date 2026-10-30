@@ -1,9 +1,9 @@
 import copy
+import json
+import tomllib
 from dataclasses import asdict
 from pathlib import Path
 from typing import Any
-lazy import json
-lazy import tomllib
 
 from ..lib.logger import log
 from .defaults import DEFAULT_CONF
@@ -13,9 +13,6 @@ type CfgList = list[None | Config | Path | tuple[Path, str]]
 
 
 class CfgLoadError(Exception): ...
-
-
-# TODO: expand '@ext' variables
 
 
 def _update_dict(
@@ -56,7 +53,7 @@ def _resolve_references(cmd_dict: dict[str, Any]) -> dict[str, Any]:
             if ref_key in cmd_dict:
                 return resolve_item(cmd_dict[ref_key], depth + 1)
             else:
-                log.error(f"Couldn't find reference key: {ref_key}") 
+                log.error(f"Couldn't find reference key: {ref_key}")
                 raise CfgLoadError(f"Reference key '{ref_key}' not found.")
 
         # Handle lists
@@ -148,9 +145,7 @@ def load_config(configs: CfgList) -> ResolvedConf:
                 log.error(
                     f"invalid Keys detected in Config file: {log.fmt(str(file), 'GRAY')}"
                 )
-                log.error(
-                    f"Error: {str(e).removeprefix('Config.__init__()').strip()}"
-                )
+                log.error(f"Error: {str(e).removeprefix('Config.__init__()').strip()}")
                 raise CfgLoadError
 
             _update_dict(final_config, config)

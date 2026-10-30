@@ -7,7 +7,7 @@ license       = "GPL-3.0-or-later"
 license-files = ["LICENSE"]
 authors       = [{ name = "Soumadip Das", email = "soumadip+github@zohomail.in" }]
 
-requires-python = ">=3.15"
+requires-python = ">=3.14"
 dependencies    = []
 
 [project.urls]
