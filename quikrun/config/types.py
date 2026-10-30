@@ -7,8 +7,8 @@ from typing import Literal, TypedDict
 type CmdCommand = str | list[str] | dict[str, CmdCommand]
 type CmdConfig = dict[str, CmdCommand]
 
-type Platform = Literal["linux", "win", "darwin", "auto"]
-type Shell = Literal["posix", "cmd", "pwsh", "auto"]
+type Platform = Literal["auto", "linux", "win", "darwin"]
+type Shell = Literal["auto", "posix", "cmd", "pwsh"]
 type AutoExit = Literal["always", "never", "on_success"]
 
 type StrOrPath = str | Path

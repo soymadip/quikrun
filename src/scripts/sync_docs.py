@@ -22,6 +22,11 @@ NAME_MAP = {
     "pwsh": "PowerShell 7",
 }
 
+TYPE_DISPLAY_NAMES = {
+    "Path": "string",
+    "list": "array",
+}
+
 
 def format_command_value(val: Any) -> str:
     """Formats command values for documentation, keeping @notations intact as code tags."""
@@ -51,9 +56,9 @@ def is_compiled_config(val: Any) -> bool:
 
 
 def format_type_hint(tp: Any) -> str:
-    """Recursively resolves type aliases, unwraps unions, and cleans up type hints into a single backtick block."""
+    """Recursively resolves type aliases and formats type hints for Markdown."""
     if hasattr(tp, "__value__"):
-        return format_type_hint(tp.__value__)[1:-1]
+        return format_type_hint(tp.__value__)
 
     origin = get_origin(tp)
     if origin is Union or type(tp).__name__ == "UnionType":
@@ -61,15 +66,17 @@ def format_type_hint(tp: Any) -> str:
         parts = []
         for arg in args:
             if arg is type(None) or arg is None:
-                parts.append("None")
+                continue
             else:
-                parts.append(format_type_hint(arg).strip("`"))
-        return f"`{' | '.join(parts)}`"
+                formatted_arg = format_type_hint(arg)
+                if formatted_arg not in parts:
+                    parts.append(formatted_arg)
+        return " / ".join(
+            f"`{part}`" if not part.startswith("`") else part for part in parts
+        )
 
     if origin is Literal or getattr(tp, "__name__", "") == "Literal":
-        args = get_args(tp)
-        formatted_args = ", ".join(repr(arg) for arg in args)
-        return f"`Literal[{formatted_args}]`"
+        return " / ".join(f'`"{arg}"`' for arg in get_args(tp))
 
     if tp is type(None) or tp is None:
         return "`None`"
@@ -85,7 +92,11 @@ def format_type_hint(tp: Any) -> str:
     for prefix in prefixes_to_strip:
         tp_str = tp_str.replace(prefix, "")
 
-    return f"`{tp_str}`"
+    display_name = TYPE_DISPLAY_NAMES.get(tp_str)
+    if display_name is None and tp_str.startswith("list["):
+        display_name = "array"
+
+    return f"`{display_name or tp_str}`"
 
 
 def generate_config_ref_table() -> str:
@@ -111,7 +122,7 @@ def generate_config_ref_table() -> str:
         else:
             default_str = f"`{default_val}`"
 
-        table_md += f"| {setting_name} | {type_str} | {description} | {default_str} |\n"
+        table_md += f"| {setting_name} | {type_str} | {default_str} | {description} |\n"
 
     return table_md
 
