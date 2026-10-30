@@ -205,7 +205,7 @@ jobs:
               # Wait for GitHub release tarball to become available (handles 404 race condition)
               echo "Waiting for GitHub release tarball to be ready..."
               su builduser -c "
-                for i in $(seq 1 12); do
+                for i in $(seq 1 90); do
                   if updpkgsums; then
                     exit 0
                   fi
@@ -260,3 +260,45 @@ jobs:
           installers-regex: '${{ needs.get-info.outputs.pkgname }}-windows-amd64\.exe$'
           max-versions-to-keep: 4
           token: ${{ secrets.WINGET_TOKEN }}
+
+  build-summary:
+    needs: [get-info, update-pypi, update-aur, update-winget]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Generate Workflow Summary Report
+        run: |
+          PYPI_STATUS="${{ needs.update-pypi.result }}"
+          AUR_STATUS="${{ needs.update-aur.result }}"
+          WINGET_STATUS="${{ needs.update-winget.result }}"
+          WINGET_PR_URL="${{ needs.update-winget.outputs.pr-url }}"
+          PKGNAME="${{ needs.get-info.outputs.pkgname }}"
+          VERSION="${{ needs.get-info.outputs.version }}"
+
+          format_status() {
+            case "$1" in
+              success) echo "✅ Success" ;;
+              skipped) echo "⏭️ Skipped" ;;
+              failure) echo "❌ Failed" ;;
+              cancelled) echo "⚠️ Cancelled" ;;
+              *) echo "❓ Unknown ($1)" ;;
+            }
+          }
+
+          echo "## Package Release Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Target Platform | Status | Direct Link |" >> $GITHUB_STEP_SUMMARY
+          echo "| :--- | :--- | :--- |" >> $GITHUB_STEP_SUMMARY
+          echo "| **PyPI** (Python Package) | $(format_status "$PYPI_STATUS") | [View on PyPI](https://pypi.org/project/$PKGNAME/$VERSION/) |" >> $GITHUB_STEP_SUMMARY
+          echo "| **AUR** (Arch Linux) | $(format_status "$AUR_STATUS") | [View on AUR](https://aur.archlinux.org/packages/$PKGNAME) |" >> $GITHUB_STEP_SUMMARY
+          
+          if [ -n "$WINGET_PR_URL" ] && [ "$WINGET_PR_URL" != "null" ]; then
+            WINGET_LINK="[View WinGet PR]($WINGET_PR_URL)"
+          else
+            WINGET_LINK="[View on Winstall](https://winstall.app/apps/${{ github.repository_owner }}.$PKGNAME)"
+          fi
+          
+          echo "| **WinGet** (Windows Package) | $(format_status "$WINGET_STATUS") | $WINGET_LINK |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version Released:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Package Name:** \`$PKGNAME\`" >> $GITHUB_STEP_SUMMARY
