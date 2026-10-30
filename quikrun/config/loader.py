@@ -23,11 +23,14 @@ def _update_dict(
 ) -> dict[str, Any]:
     """
     Recursively updates base_dict in place with values from update_dict.
-    Skips any key not in base_dict or whose value is explicitly None.
+    Skips values explicitly set to None.
     """
     for key, value in update_dict.items():
-        # Skip if key is not in base_dict or Value is explicitely null
-        if key not in base_dict or value is None:
+        if value is None:
+            continue
+
+        if key not in base_dict:
+            base_dict[key] = copy.deepcopy(value)
             continue
 
         if isinstance(base_dict[key], dict) and isinstance(value, dict):

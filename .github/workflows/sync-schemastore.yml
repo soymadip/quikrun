@@ -66,7 +66,7 @@ jobs:
         if: steps.check.outputs.changed == 'true'
         run: |
           cp quikrun.json schemastore/src/schemas/json/quikrun.json
-          
+
           echo '#:schema ../../schemas/json/quikrun.json' > schemastore/src/test/quikrun/quikrun.toml
           cat default_config.toml >> schemastore/src/test/quikrun/quikrun.toml
 
@@ -91,7 +91,7 @@ jobs:
 
           BRANCH_NAME="update-quikrun-schema-${{ github.sha }}"
           git checkout -b $BRANCH_NAME
-          
+
           # Stage both the schema and the test file
           git add src/schemas/json/quikrun.json src/test/quikrun/quikrun.toml
 

@@ -1,11 +1,12 @@
 # Customizing Commands
 
-To override the default command for a supported language, add it to your [config](configuration):
+To override a default command or register a new command for an extension, add it to your [config](configuration):
 
 ```toml
 # using quikrun.toml
 [commands]
 py = "python3 {file_path}"   # overrides default
+zig = "zig run {file_path}"  # adds support for .zig files
 
 # using pyproject.toml
 [tool.quikrun.commands]
@@ -24,7 +25,7 @@ These will be replaced with the actual values during command execution.
 | Placeholder      | Value                                                                |
 | ---------------- | -------------------------------------------------------------------- |
 | `{file_path}`    | Path to the given file (<small>quoted</small>)                       |
-| `{file_dir}`     | Path to the dir containing the file (<small>quoted</small>)   |
+| `{file_dir}`     | Path to the dir containing the file (<small>quoted</small>)          |
 | `{file_name}`    | name of the given file (e.g. `main.py`) (<small>quoted</small>)      |
 | `{file_stem}`    | filename without its extension (e.g. `main`) (<small>quoted</small>) |
 | `{file_slug}`    | file name without spaces (e.g., 'my file.py' -> 'my_file')           |

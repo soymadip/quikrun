@@ -25,7 +25,8 @@ def test_update_dict_merges_nested_values_and_skips_none() -> None:
 
     assert result == {
         "show_command": True,
-        "commands": {"py": "python"},
+        "commands": {"py": "python", "js": "node"},
+        "unknown": True,
     }
 
 
@@ -79,6 +80,14 @@ def test_load_config_merges_config_objects_and_resolves_commands() -> None:
 
     assert config.show_command is False
     assert config.commands["py"] == ["bun run {file_path}", "node {file_path}"]
+
+
+def test_load_config_registers_new_command_extension() -> None:
+    config = load_config(
+        [Config(commands={"zig": "zig run {file_path}"})]
+    )
+
+    assert config.commands["zig"] == "zig run {file_path}"
 
 
 def test_load_config_reads_json_section(tmp_path) -> None:
