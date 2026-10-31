@@ -11,7 +11,7 @@ A key defined at a higher-priority level overrides the same key at lower levels.
 | **4**           | `package.json` -> `"quikrun"` key            | Project |
 | **5**           | `$XDG_CONFIG_HOME/quikrun/config.toml`       | User    |
 | **6**           | `/etc/quikrun/config.toml`                   | System  |
-| **7 (lowest)**  | [Built-in defaults](/default-cmds.md)        | Global  |
+| **7 (lowest)**  | [Built-in defaults](/default-cmds)          | Global  |
 
 Flow:
 
