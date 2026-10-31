@@ -26,18 +26,18 @@ These will be replaced with the actual values during command execution.
 
 | Placeholder      | Value                                                      |
 | :--------------- | :--------------------------------------------------------- |
-| `{platform}`     | platform name (e.g., 'linux', 'win', 'darwin')             |
-| `{shell}`        | shell name (e.g., 'posix', 'cmd', 'pwsh')                  |
-| `{file_path}`    | quoted path to the source file as given                    |
-| `{file_dir}`     | quoted absolute path to the source file's directory        |
-| `{file_name}`    | quoted filename with extension (e.g., 'main.py')           |
-| `{file_stem}`    | quoted filename without extension (e.g., 'main')           |
-| `{file_slug}`    | file name without spaces (e.g., 'my file.py' -> 'my_file') |
-| `{file_ext}`     | file extension (e.g., '.py')                               |
-| `{file_shebang}` | shebang's command (e.g., '/usr/bin/env python3')           |
-| `{out_dir}`      | quoted path to the compiled output bin's dir               |
-| `{out_file}`     | quoted path of out_dir/file_stem                           |
-| `{run_args}`     | arguments to pass to file/bin                              |
+| `{platform}`     | Platform name (e.g., 'linux', 'win', 'darwin')             |
+| `{shell}`        | Shell name (e.g., 'posix', 'cmd', 'pwsh')                  |
+| `{file_path}`    | Quoted path to the source file as given                    |
+| `{file_dir}`     | Quoted absolute path to the source file's directory        |
+| `{file_name}`    | Quoted filename with extension (e.g., 'main.py')           |
+| `{file_stem}`    | Quoted filename without extension (e.g., 'main')           |
+| `{file_slug}`    | File name without spaces (e.g., 'my file.py' -> 'my_file') |
+| `{file_ext}`     | File extension (e.g., '.py')                               |
+| `{file_shebang}` | Shebang's command (e.g., '/usr/bin/env python3')           |
+| `{out_dir}`      | Quoted path to the compiled output bin's dir               |
+| `{out_file}`     | Quoted path of out_dir/file_stem                           |
+| `{run_args}`     | Arguments to pass to file/bin                              |
 
 <!-- DYNAMIC_VARIABLES_END -->
 
