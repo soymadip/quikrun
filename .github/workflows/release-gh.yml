@@ -77,7 +77,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
-  build-linux:
+  build-wheel-and-linux:
     needs: get-info
     runs-on: ubuntu-latest
     env:
@@ -102,6 +102,11 @@ jobs:
 
       - name: Build python distributions
         run: uv build
+
+      - name: Build Schema
+        run: |
+          mise run gen-schema
+          mv quikrun.json dist/schema.json
 
       - name: Build Linux executable
         run: |
@@ -182,6 +187,7 @@ jobs:
           files: |
             dist/*.tar.gz
             dist/*.whl
+            dist/schema.json
             dist/quikrun-linux-amd64
             dist-exe/quikrun-windows-amd64.exe
         env:

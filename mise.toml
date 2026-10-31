@@ -35,3 +35,7 @@ run = "uv run nuitka --onefile --assume-yes-for-downloads --python-flag=-m --out
 [tasks.tests]
 description = "Run test suite"
 run = "uv run pytest"
+
+[tasks.gen-schema]
+description = "Generate schema"
+run = "uv run src/scripts/gen_schema.py"
