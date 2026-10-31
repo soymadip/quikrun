@@ -29,7 +29,7 @@ features:
 
   - icon: "🛠️"
     title: "Highly Configurable"
-    details: "Add new languages or override behavior via quikrun.toml, pyproject.toml, Cargo.toml, or package.json."
+    details: "Add new languages or override behavior via quikrun.toml, pyproject.toml, Cargo.toml, or package.json etc."
 
   - icon: "➡️"
     title: "Clean Argument Forwarding"

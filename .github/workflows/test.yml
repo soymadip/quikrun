@@ -24,4 +24,3 @@ jobs:
         run: |
           uv sync
           uv run pytest
-

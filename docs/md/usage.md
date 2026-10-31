@@ -6,7 +6,7 @@
 quikrun <file>
 ```
 
-Quikrun detects how to run the file automatically by checking its shebang line first, then its extension.
+Quikrun detects how to run the file automatically by checking its [shebang](<https://en.wikipedia.org/wiki/Shebang_(Unix)>) first, then its extension.
 
 ```bash
 quikrun hello.py       # runs: python3 hello.py
@@ -34,7 +34,7 @@ quikrun hello.c        # compiles with gcc, then runs the binary
   quikrun script.py arg1 arg2
   ```
 
-- Use the `--` separator to forward arguments to the script instead of quikrun:
+- Use the `--` separator to forward arguments to the script:
 
   ```bash
   quikrun script.py -- --verbose --output result.txt
@@ -52,8 +52,8 @@ quikrun my_script
 
 ## Exit Codes
 
-Quikrun forwards the exit code of the executed script directly to the shell, so you can use it in pipelines and scripts:
+Quikrun forwards the exit code of the executed script directly to the shell, so you can use it in pipelines & scripts:
 
 ```bash
-quikrun test.py || echo "script failed"
+quikrun faulty.py || echo "script failed"
 ```

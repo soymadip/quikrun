@@ -95,20 +95,20 @@ class ResolvedConf:
 class CmdVars(TypedDict):
     """Template Variables for Command Templates"""
 
-    platform: Platform  #   platform name (e.g., 'linux', 'win', 'darwin')
-    shell: Shell  #         shell name (e.g., 'posix', 'cmd', 'pwsh')
+    platform: Platform  #   Platform name (e.g., 'linux', 'win', 'darwin')
+    shell: Shell  #         Shell name (e.g., 'posix', 'cmd', 'pwsh')
 
-    file_path: StrOrPath  # quoted path to the source file as given
-    file_dir: StrOrPath  #  quoted absolute path to the source file's directory
-    file_name: str  #       quoted filename with extension (e.g., 'main.py')
-    file_stem: str  #       quoted filename without extension (e.g., 'main')
-    file_slug: str  #       file name without spaces (e.g., 'my file.py' -> 'my_file')
-    file_ext: str  #        file extension (e.g., '.py')
-    file_shebang: str  #    shebang's command (e.g., '/usr/bin/env python3')
+    file_path: StrOrPath  # Quoted path to the source file as given
+    file_dir: StrOrPath  #  Quoted absolute path to the source file's directory
+    file_name: str  #       Quoted filename with extension (e.g., 'main.py')
+    file_stem: str  #       Quoted filename without extension (e.g., 'main')
+    file_slug: str  #       File name without spaces (e.g., 'my file.py' -> 'my_file')
+    file_ext: str  #        File extension (e.g., '.py')
+    file_shebang: str  #    Shebang's command (e.g., '/usr/bin/env python3')
 
-    out_dir: StrOrPath  #   quoted path to the compiled output bin's dir
-    out_file: StrOrPath  #  quoted path of out_dir/file_stem
-    run_args: str | list[str]  #  arguments to pass to file/bin
+    out_dir: StrOrPath  #   Quoted path to the compiled output bin's dir
+    out_file: StrOrPath  #  Quoted path of out_dir/file_stem
+    run_args: str | list[str]  #  Arguments to pass to file/bin
 
 
 UNQUOTED_VARS = frozenset(["file_shebang", "file_ext", "platform", "shell"])

@@ -6,9 +6,11 @@ Install {{meta.project.title }} from your distro's package manager or PyPI.
 
 ## Distro Packages
 
-Install {{meta.project.title }} from your distro's package.
+Install {{meta.project.title }} With your distro's package Manager.
 
 ### Arch Linux (AUR)
+
+Use an AUR helper:
 
 ```bash
 paru -S quikrun
@@ -17,7 +19,13 @@ paru -S quikrun
 yay -S quikrun
 ```
 
-## Via PyPI
+## Other Methods
+
+### Prebuilt Binary
+
+Prebuilt binaries are available for different platforms in the [Releases](https://github.com/soymadip/quikrun/releases/latest).
+
+### Via PyPI
 
 If there is not package for your distro/os, you can install directly:
 

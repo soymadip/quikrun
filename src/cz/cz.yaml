@@ -93,8 +93,8 @@ commitizen:
     - uv sync
     - git push origin $(git branch --show-current) --follow-tags
   pre_bump_hooks:
-    - mise run format
     - uv run src/scripts/sync_docs
+    - mise run format
     - bash src/cz/bumper.sh
   tag_format: v$version
   template: src/cz/changelog.j2

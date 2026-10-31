@@ -1,6 +1,8 @@
+- [ ] The command reference in docs do not mention platform
 - [ ] Find if there is any action dependency check automation
 - [ ] Setup Test to compare RawConf & ResolvedConf are same (without the None type)
 - [ ] Fix sync docs script to correctly extract info
 - [ ] Record & put aschiischema in README
 - [ ] Dart, Yarn config file support. Need to add pyyaml dep so holding until someone requests
+
 - [ ] Add caching for resoluted config

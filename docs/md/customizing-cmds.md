@@ -22,80 +22,35 @@ py = "python3 {file_path}"
 Templates use these variables as placeholders.  
 These will be replaced with the actual values during command execution.
 
-| Placeholder      | Value                                                                |
-| ---------------- | -------------------------------------------------------------------- |
-| `{file_path}`    | Path to the given file (<small>quoted</small>)                       |
-| `{file_dir}`     | Path to the dir containing the file (<small>quoted</small>)          |
-| `{file_name}`    | name of the given file (e.g. `main.py`) (<small>quoted</small>)      |
-| `{file_stem}`    | filename without its extension (e.g. `main`) (<small>quoted</small>) |
-| `{file_slug}`    | file name without spaces (e.g., 'my file.py' -> 'my_file')           |
-| `{file_ext}`     | Given file's extension (e.g. `py`)                                   |
-| `{file_shebang}` | Shebang (if present) of given file (<small>quoted</small>)           |
-| `{out_dir}`      | Path to the compiled output bin's dir (<small>shell quoted</small>)  |
-| `{out_file}`     | path to out_dir/file_stem (<small>quoted</small>)                    |
-| `{platform}`     | Platform name ('linux'/'darwin'/'win')                               |
-| `{shell}`        | Shell name ('posix'/'cmd'/'pwsh')                                    |
+<!-- DYNAMIC_VARIABLES_START -->
 
-## Cross Platform/Shell Commands
+| Placeholder      | Value                                                      |
+| :--------------- | :--------------------------------------------------------- |
+| `{platform}`     | platform name (e.g., 'linux', 'win', 'darwin')             |
+| `{shell}`        | shell name (e.g., 'posix', 'cmd', 'pwsh')                  |
+| `{file_path}`    | quoted path to the source file as given                    |
+| `{file_dir}`     | quoted absolute path to the source file's directory        |
+| `{file_name}`    | quoted filename with extension (e.g., 'main.py')           |
+| `{file_stem}`    | quoted filename without extension (e.g., 'main')           |
+| `{file_slug}`    | file name without spaces (e.g., 'my file.py' -> 'my_file') |
+| `{file_ext}`     | file extension (e.g., '.py')                               |
+| `{file_shebang}` | shebang's command (e.g., '/usr/bin/env python3')           |
+| `{out_dir}`      | quoted path to the compiled output bin's dir               |
+| `{out_file}`     | quoted path of out_dir/file_stem                           |
+| `{run_args}`     | arguments to pass to file/bin                              |
 
-If a same command is valid across all platforms/shells, it can be defined using a flag string:
+<!-- DYNAMIC_VARIABLES_END -->
+
+## Universal Commands
+
+If a same command is valid across all platforms/shells, it can be defined using a flat string:
 
 ```toml
 [commands]
 py = "python3 {file_path}" # ran in any os/shell
-c = { compile = "gcc -Wall -Wextra {file_path} -o {out_file}", run = "{out_file}" }  # ran on any os/shell
 ```
 
-## Platform & Shell Specific Commands
-
-You can define which command runs on which shell or operating system.
-
-- **Shell Families:** `posix` (bash, zsh, sh), `cmd` (Windows CMD), `pwsh` (PowerShell Core or 7+).
-- **OS Platforms:** `linux`, `darwin`, `win`.
-
-### Shell Family Specific
-
-Used if a specific shell requires unique syntax (e.g. setting environment variables differently)
-
-> [!WARNING]
-> although for examples we use line breaks for readability, TOML requires inline tables to be defined on a single line
-
-```toml
-[commands]
-foo = {
-    posix = "ENV_VAR=1 foo {file_path}",       # runs on bash/zsh...   on any OS
-    pwsh =  "$env:ENV_VAR=1; foo {file_path}", # runs on PowerShell 7+ on any OS
-    cmd =   "set ENV_VAR=1& foo {file_path}",  # runs on Windows CMD   on any OS
-}
-```
-
-### OS Platform Specific
-
-Used when the executable name differs across operating systems
-
-```toml
-[commands]
-foo = {
-   posix = {
-       linux = "foo-linux {file_path}",  # runs on bash/zsh... on Linux
-       darwin = "foo-mac {file_path}",   # runs on bash/zsh... on macOS
-       win = "foo-win {file_path}",      # runs on bash/zsh... on Windows
-    },
-    pwsh = "foo-win {file_path}",  # runs on PowerShell 7+ on any OS
-    cmd = "foo-win {file_path}",   # runs on Windows CMD   on any OS
-}
-```
-
-## Command Array
-
-quikrun will automatically pick the first command installed on your system!
-
-```toml
-[commands]
-js = ["bun run {file_path}", "deno run {file_path}", "node {file_path}"]
-```
-
-## Split Compile & Run
+### Split Compile & Run Commands
 
 For Compiled languages, it's recommended to define compile & run commands separately, this helps measuring execution time correctly.
 
@@ -107,7 +62,46 @@ go = {
 }
 ```
 
-### Shell/Platform Specific
+## Shell Specific Commands
+
+If a commands is cross platfrorm/os but requires different syntax for different shells,  
+it can be defined using a table:
+
+> [!WARNING]
+> although for examples we use line breaks for readability, TOML requires inline tables to be defined on a single line
+
+```toml
+[commands]
+foo = {
+    posix = "ENV_VAR=1 foo {file_path}",       # runs on bash/zsh...   on any OS
+    cmd =   "set ENV_VAR=1& foo {file_path}",  # runs on Windows CMD   on any OS
+    pwsh =  "$env:ENV_VAR=1; foo {file_path}", # runs on PowerShell 7+ on any OS
+}
+```
+
+## OS Platform Specific
+
+Used when You want to run different commands for different OS platform:
+
+```toml
+[commands]
+foo = {
+    linux = "foo-linux {file_path}",  # runs on on Linux
+    darwin = "foo-mac {file_path}",   # runs on on macOS
+    win = "foo-win {file_path}",      # runs on on Windows
+}
+```
+
+## Command Array
+
+quikrun will automatically pick the first command that's binary is installed on your system!
+
+```toml
+[commands]
+js = ["bun run {file_path}", "deno run {file_path}", "node {file_path}"]
+```
+
+## Shell & Platform Specific
 
 You can nest compile-run tables under shell or operating systems (inside shell families) as well.
 
@@ -120,11 +114,22 @@ cpp = {
   }
 }
 
+# Or Opposite
+cpp = {
+  linux = {
+    posix = { compile = "g++ -Wall {file_path} -o {out_file}", run = "{out_file}" },       # runs on Linux when using posix shell
+    pwsh = { compile = "clang++ -Wall {file_path} -o {out_file}", run = "{out_file}" },  # runs on Linux when using powershell
+  }
+}
+
 ```
 
-## Command Inheritance
+## Referencing Extension
 
-Use the `@` prefix to inherit a configuration from an already defined command template!
+Use the `@` prefix to Reference a extension's configuration from an already defined command template!
+
+> [!WARNING]
+> Make sure the extension you are referencing is defined before!
 
 ```toml
 [commands]

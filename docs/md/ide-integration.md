@@ -29,13 +29,13 @@ Create or edit your `.zed/tasks.json` in your project root (or open your global 
 ]
 ```
 
-For explanations of these options, refer to the [Zed Tasks Docs](https://zed.dev/docs/tasks).
+For explanations of above options, refer to the [Zed Tasks Docs](https://zed.dev/docs/tasks).
 
 #### Bind a Key
 
 To run the task with a keyboard shortcut (e.g., `Ctrl+Alt+N`):
 
-Create or edit `.zed/keymap.json` in your project root (or run `zed: open keymap` from the command palette) and add:
+Create or edit `.zed/keymap.json` in your project root (or run `zed: open keymap file` from the command palette) and add:
 
 ```json
 [
