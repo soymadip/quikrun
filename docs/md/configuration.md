@@ -3,15 +3,15 @@
 Quikrun supports several levels of configuration, merged in this priority order (highest to lowest).  
 A key defined at a higher-priority level overrides the same key at lower levels.
 
-| Priority        | File                                          | Scope   |
-| --------------- | --------------------------------------------- | ------- |
-| **1 (highest)** | `quikrun.toml` in project directory           | Project |
-| **2**           | `pyproject.toml` -> `[tool.quikrun]`          | Project |
-| **3**           | `Cargo.toml` -> `[package.metadata.quikrun]`  | Project |
-| **4**           | `package.json` -> `"quikrun"` key             | Project |
-| **5**           | `$XDG_CONFIG_HOME/quikrun/config.toml`        | User    |
-| **6**           | `/etc/quikrun/config.toml`                    | System  |
-| **7 (lowest)**  | [Built-in defaults](/docs/md/default-cmds.md) | Global  |
+| Priority        | File                                         | Scope   |
+| --------------- | -------------------------------------------- | ------- |
+| **1 (highest)** | `quikrun.toml` in project directory          | Project |
+| **2**           | `pyproject.toml` -> `[tool.quikrun]`         | Project |
+| **3**           | `Cargo.toml` -> `[package.metadata.quikrun]` | Project |
+| **4**           | `package.json` -> `"quikrun"` key            | Project |
+| **5**           | `$XDG_CONFIG_HOME/quikrun/config.toml`       | User    |
+| **6**           | `/etc/quikrun/config.toml`                   | System  |
+| **7 (lowest)**  | [Built-in defaults](/default-cmds.md)        | Global  |
 
 Flow:
 
