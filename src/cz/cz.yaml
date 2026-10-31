@@ -90,12 +90,12 @@ commitizen:
     - $version
   name: cz_customize
   post_bump_hooks:
-    - uv sync
     - git push origin $(git branch --show-current) --follow-tags
   pre_bump_hooks:
     - uv run src/scripts/sync_docs
     - mise run format
     - bash src/cz/bumper.sh
+    - uv sync
   tag_format: v$version
   template: src/cz/changelog.j2
   update_changelog_on_bump: false
