@@ -3,11 +3,16 @@ run-name: "Deploy Documentation"
 
 on:
   push:
-    branches: [main]
-    paths:
-      - "docs/**"
-      - ".github/workflows/deploy-docs.yml"
+    tags:
+      - "v*.*.*"
+
   workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: "Force deploy even if no tags are published"
+        required: false
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -19,7 +24,36 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      should_deploy: ${{ steps.check.outputs.should_deploy }}
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Check published tag or force deploy
+        id: check
+        run: |
+          if [ "${{ inputs.force_deploy }}" = "true" ]; then
+            echo "Force deploy requested via input."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            echo "Triggered by tag push (${{ github.ref_name }})."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          elif [ -n "$(git tag --points-at HEAD)" ]; then
+            echo "Commit has published tag: $(git tag --points-at HEAD)."
+            echo "should_deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "No tag published for current commit and force_deploy is false. Skipping docs deployment."
+            echo "should_deploy=false" >> "$GITHUB_OUTPUT"
+          fi
+
   deploy:
+    needs: check
+    if: needs.check.outputs.should_deploy == 'true'
     environment:
       name: docs
       url: ${{ steps.deployment.outputs.page_url }}

@@ -23,8 +23,5 @@ jobs:
       - name: Run tests
         run: |
           uv sync
-          uv run pytest tests/
+          uv run pytest
 
-      - name: Prune uv cache
-        if: always()
-        run: uv cache prune --ci
