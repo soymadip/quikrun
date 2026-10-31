@@ -150,8 +150,39 @@ jobs:
           name: windows-exe
           path: dist/quikrun-windows-amd64.exe
 
+  build-macos:
+    needs: get-info
+    runs-on: macos-latest
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7
+
+      - uses: jdx/mise-action@v5
+
+      - name: Cache ccache
+        uses: actions/cache@v6
+        with:
+          path: .ccache
+          key: ${{ runner.os }}-ccache-${{ github.ref_name }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ github.ref_name }}-
+            ${{ runner.os }}-ccache-
+
+      - name: Build macOS executable
+        run: |
+          mise run build
+          mv dist/quikrun dist/quikrun-macos-arm64
+
+      - name: Upload macOS executable
+        uses: actions/upload-artifact@v7
+        with:
+          name: macos-bin
+          path: dist/quikrun-macos-arm64
+
   release:
-    needs: [get-info, build-linux, build-windows]
+    needs: [get-info, build-wheel-and-linux, build-windows, build-macos]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
@@ -177,6 +208,12 @@ jobs:
           name: windows-exe
           path: dist-exe/
 
+      - name: Download macOS Binary
+        uses: actions/download-artifact@v8
+        with:
+          name: macos-bin
+          path: dist-macos/
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v3
         with:
@@ -190,5 +227,6 @@ jobs:
             dist/schema.json
             dist/quikrun-linux-amd64
             dist-exe/quikrun-windows-amd64.exe
+            dist-macos/quikrun-macos-arm64
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
