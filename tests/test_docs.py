@@ -18,3 +18,12 @@ def test_format_type_hint_maps_path() -> None:
 
 def test_format_type_hint_maps_lists_to_arrays() -> None:
     assert format_type_hint(list[str]) == "`array`"
+
+
+def test_generate_variables_table() -> None:
+    from src.scripts.sync_docs import generate_variables_table
+
+    table = generate_variables_table()
+    assert "| Placeholder | Value |" in table
+    assert "| `{file_path}` |" in table
+    assert "| `{run_args}` |" in table
