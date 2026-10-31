@@ -11,7 +11,7 @@ on:
       force_deploy:
         description: "Force deploy even if no tags are published"
         required: false
-        default: false
+        default: true
         type: boolean
 
 permissions:
