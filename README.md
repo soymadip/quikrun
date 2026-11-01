@@ -1,9 +1,11 @@
-<div align="center">
-  <img src="https://raw.githubusercontent.com/soymadip/quikrun/main/src/img/icon.svg" height="85">
-  <h1>Quikrun</h1>
-  <h4>Run your code files without hassle</h4>
-  <p>Quikrun is a cross platform CLI tool for running code files instantly without typing complex commands in your terminal.</p>
-</div>
+<img align="right" width="52%" src="src/img/demo.gif" alt="Quikrun demo">
+
+<img src="https://raw.githubusercontent.com/soymadip/quikrun/main/src/img/icon.svg" alt="Quikrun logo" height="60">
+<h1>Quikrun</h1>
+<h3>Run your code files without hassle</h3>
+<p>Quikrun is a cross platform CLI tool for running code files instantly without typing complex commands in your terminal.</p>
+
+<br clear="all">
 
 ## Features
 
@@ -12,14 +14,6 @@
 - **Highly Configurable:** Add new languages or override behavior to suit your own taste
 - **Argument Forwarding:** Safely forward arguments/flags to your scripts easily, with support for POSIX `--` separator.
 - **Preserves Return Codes:** Catches exist code of your file and returns it gracefully to shell
-
-## Demo
-
-<center>
-
-![Quikrun demo](src/img/demo.gif)
-
-</center>
 
 ---
 
