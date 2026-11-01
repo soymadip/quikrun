@@ -70,7 +70,7 @@ export default withMermaid({
   themeConfig: {
     logo: `${base}icon.svg`,
     asciinema: {
-      src: "/demo.cast",
+      src: `${base}demo.cast`,
       preload: true,
       loop: true,
       playDelay: 1500,
