@@ -11,6 +11,8 @@
 - **Sane Defaults:** Default command templates preconfigured with generally recommended compiler/interpreter flags.
 - **Highly Configurable:** Add new languages or override behavior to suit your own taste
 - **Argument Forwarding:** Safely forward arguments/flags to your scripts easily, with support for POSIX `--` separator.
+- **Preserves Return Codes:** Catches exist code of your file and returns it gracefully to shell
+
 
 ---
 
@@ -27,7 +29,7 @@ paru -S quikrun
 yay -S quikrun
 ```
 
-### Via PyPI
+## Via PyPI
 
 If there is not package for your distro/OS, you can install directly:
 
@@ -41,6 +43,10 @@ pipx install quikrun
 # Using pip (if you wanna install locally in a project)
 pip install quikrun
 ```
+
+## Precompiled binary
+
+Precompiled binaries are available in [Releases](https://github.com/soymadip/quikrun/releases/latest)
 
 ---
 
@@ -67,15 +73,8 @@ quikrun hello.c   # compiles using gcc and runs the binary
   quikrun script.py -- --verbose --threads 4
   ```
 
-## Configuration
+---
 
-quikrun merges config options in a hierarchy (highest priority wins):
+## Configuration, IDE Integration
 
-1. **Project:** `quikrun.toml` in your current working directory.
-2. **Project:** `[tool.quikrun]` table inside `pyproject.toml`.
-3. **Project:** `[package.metadata.quikrun]` table inside `Cargo.toml`.
-4. **Project:** `"quikrun"` key inside `package.json`.
-5. **User:** `~/.config/quikrun/config.toml` (XDG-compliant).
-6. **Built-in:** Default fallbacks for common languages.
-
-For customization, default commands, or custom commands, check out **[Documentation](https://soymadip.github.io/quikrun)**:
+For customization, default commands, IDE Integration, check out our **[Documentation](https://soymadip.github.io/quikrun)**
