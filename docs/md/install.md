@@ -25,6 +25,9 @@ yay -S quikrun
 
 Prebuilt binaries are available for different platforms in the [Releases](https://github.com/soymadip/quikrun/releases/latest).
 
+> [!INFO]
+> This project uses the SignPath Foundation for code signing.
+
 ### Via PyPI
 
 If there is not package for your distro/os, you can install directly:
