@@ -249,13 +249,13 @@
     display: none;
   }
 
-    .VPHero .asciinema-embed--desktop {
-      display: none;
-    }
+  .VPHero .asciinema-embed--desktop {
+    display: none;
+  }
 
-    .VPHero .asciinema-embed--mobile {
-      display: block;
-    }
+  .VPHero .asciinema-embed--mobile {
+    display: block;
+  }
 
   .VPHero .main {
     text-align: center;
