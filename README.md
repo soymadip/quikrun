@@ -13,6 +13,13 @@
 - **Argument Forwarding:** Safely forward arguments/flags to your scripts easily, with support for POSIX `--` separator.
 - **Preserves Return Codes:** Catches exist code of your file and returns it gracefully to shell
 
+## Demo
+
+<center>
+
+![Quikrun demo](src/img/demo.gif)
+
+</center>
 
 ---
 

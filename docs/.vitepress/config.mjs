@@ -69,6 +69,12 @@ export default withMermaid({
 
   themeConfig: {
     logo: `${base}icon.svg`,
+    asciinema: {
+      src: "/demo.cast",
+      preload: true,
+      loop: true,
+      playDelay: 1500,
+    },
     outline: [2, 3],
     metadata: metadata,
 

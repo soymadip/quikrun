@@ -5,9 +5,6 @@ hero:
   name: "QuikRun"
   text: "Run your code without hassle"
   tagline: "A CLI tool for running code files instantly without typing complex commands in your terminal."
-  image:
-    src: /icon.svg
-    alt: Quikrun Logo
 
   actions:
     - theme: brand

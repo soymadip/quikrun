@@ -1,5 +1,6 @@
 <script setup>
 import DefaultTheme from "vitepress/theme";
+import AsciinemaEmbed from "./AsciinemaEmbed.vue";
 import { useData } from "vitepress";
 import { watch, onMounted, onUnmounted, ref } from "vue";
 
@@ -65,6 +66,12 @@ if (typeof window !== "undefined") {
 
 <template>
   <Layout>
+    <template #home-hero-info-after>
+      <AsciinemaEmbed mobile-only />
+    </template>
+    <template #home-hero-image>
+      <AsciinemaEmbed desktop-only />
+    </template>
     <template #layout-top>
       <div
         v-if="theme.banner?.enabled && frontmatter.layout !== 'home'"

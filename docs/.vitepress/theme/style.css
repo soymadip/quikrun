@@ -145,13 +145,46 @@
   letter-spacing: 0.05em;
 }
 
-.VPHomeHero .name {
+.VPHero .name {
   font-size: 63px;
 }
 
-.VPHomeHero .text {
+.VPHero .text {
   font-size: 2.4rem;
   line-height: 1.2;
+}
+
+.VPHero .image-bg {
+  display: none;
+}
+
+.VPHero .asciinema-embed {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  overflow: hidden;
+  border-radius: 12px;
+  opacity: 0;
+  transform: translateY(8px);
+  transition:
+    opacity 350ms ease,
+    transform 350ms ease;
+}
+
+.VPHero .asciinema-embed.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.VPHero .asciinema-embed--mobile {
+  display: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .VPHero .asciinema-embed {
+    transition: none;
+    transform: none;
+  }
 }
 
 /*-------- Task List Styles ----------*/
@@ -212,11 +245,58 @@
  * -------------------------------------------------------------------------- */
 
 @media (max-width: 640px) {
-  .VPHomeHero .name {
-    font-size: 3.2rem;
+  .VPHero .image {
+    display: none;
   }
-  .VPHomeHero .text {
-    font-size: 1.8rem;
+
+    .VPHero .asciinema-embed--desktop {
+      display: none;
+    }
+
+    .VPHero .asciinema-embed--mobile {
+      display: block;
+    }
+
+  .VPHero .main {
+    text-align: center;
+  }
+
+  .VPHero .name {
+    font-size: 3.2rem;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
+  .VPHero .text {
+    font-size: 1.5rem;
+    margin-top: 1rem;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+
+  .VPHero .tagline {
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  .VPHero .tagline,
+  .VPHero .asciinema-embed {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .VPHero .asciinema-embed {
+    margin-top: 1.25rem;
+  }
+
+  .VPHero .actions {
+    justify-content: center;
+  }
+
+  .VPHero .main {
+    order: 2;
   }
 }
 
