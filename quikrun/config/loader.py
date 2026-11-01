@@ -87,7 +87,7 @@ def load_config(configs: CfgList) -> ResolvedConf:
     """
     final_config = asdict(DEFAULT_CONF)
 
-    for cfg_entry in configs:
+    for cfg_entry in reversed(configs):
         if not cfg_entry:
             continue
 

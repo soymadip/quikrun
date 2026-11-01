@@ -79,7 +79,18 @@ def test_load_config_merges_config_objects_and_resolves_commands() -> None:
     )
 
     assert config.show_command is False
-    assert config.commands["py"] == ["bun run {file_path}", "node {file_path}"]
+    assert config.commands["py"] == "python {file_path}"
+
+
+def test_load_config_preserves_highest_priority_values() -> None:
+    config = load_config(
+        [
+            Config(clear_terminal=False),
+            Config(clear_terminal="scroll_up"),
+        ]
+    )
+
+    assert config.clear_terminal is False
 
 
 def test_load_config_registers_new_command_extension() -> None:
