@@ -8,9 +8,16 @@ Install {{meta.project.title }} from your distro's package manager or PyPI.
 
 Install {{meta.project.title }} With your distro's package Manager.
 
+### Arch Linux (MyRepo Repo)
+
+You can add MyRepo Repository to Your system & Install quikrun with pacman directly.   
+
+- Setup: Head to [this page](https://mydehq.github.io/my-repo)  
+- Then: `sudo pacman -Syu {{meta.project.title}}`  
+
 ### Arch Linux (AUR)
 
-Use an AUR helper:
+To Build the package directly in your system use an AUR helper:
 
 ```bash
 paru -S quikrun
@@ -24,9 +31,6 @@ yay -S quikrun
 ### Prebuilt Binary
 
 Prebuilt binaries are available for different platforms in the [Releases](https://github.com/soymadip/quikrun/releases/latest).
-
-> [!INFO]
-> This project uses the SignPath Foundation for code signing.
 
 ### Via PyPI
 
