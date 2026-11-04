@@ -21,7 +21,11 @@
 
 ### Distro Packages
 
-#### 1. Arch Linux (AUR)
+#### 1. Arch Linux (MyRepo Repository)
+
+For pre-compiled packages for Arch Linux, You can add [MyRepo](https://mydehq.github.io/my-repo/) and install directly with pacman.
+
+#### 2. Arch Linux (AUR)
 
 ```bash
 paru -S quikrun
@@ -29,6 +33,7 @@ paru -S quikrun
 # or
 yay -S quikrun
 ```
+
 
 ## Via PyPI
 
