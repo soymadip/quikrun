@@ -14,6 +14,7 @@ quikrun.spec
 .winget-pkgs
 default_config.*
 quikrun.json
+.pytest_cache/*
 
 # Virtual environments
 .venv
