@@ -27,3 +27,15 @@ def test_generate_variables_table() -> None:
     assert "| Placeholder | Value |" in table
     assert "| `{file_path}` |" in table
     assert "| `{run_args}` |" in table
+
+
+def test_generate_cli_flags_table() -> None:
+    from src.scripts.sync_docs import generate_cli_flags_table
+
+    table = generate_cli_flags_table()
+    assert "`-s <shell>`, `--shell <shell>`" in table
+    assert "`-p <platform>`, `--platform <platform>`" in table
+    assert "`--clear-terminal`, `--no-clear-terminal`" in table
+    assert "`--cache-dir <path>`" in table
+    assert "`--auto-exit <auto-exit>`" in table
+    assert "Choices: `always, never, on_success`" in table

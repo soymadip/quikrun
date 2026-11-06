@@ -1,4 +1,5 @@
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -15,12 +16,32 @@ from .formatters import (
     is_compiled_config,
 )
 from .generators import (
+    generate_cli_flags_table,
     generate_command_tables,
     generate_config_ref_table,
     generate_variables_table,
 )
 
 DOCS_MD_DIR = PROJECT_ROOT / "docs" / "md"
+
+
+def sync_cli_docs() -> None:
+    CLI_DOCS_FILE = DOCS_MD_DIR / "usage.md"
+    cli_flags_md = generate_cli_flags_table()
+
+    if CLI_DOCS_FILE.exists():
+        content = CLI_DOCS_FILE.read_text("utf-8")
+        content = re.sub(
+            r"<!-- DYNAMIC_CLI_FLAGS_START -->.*?<!-- DYNAMIC_CLI_FLAGS_END -->",
+            f"<!-- DYNAMIC_CLI_FLAGS_START -->\n\n{cli_flags_md.strip()}\n\n<!-- DYNAMIC_CLI_FLAGS_END -->",
+            content,
+            flags=re.DOTALL,
+        )
+
+        CLI_DOCS_FILE.write_text(content, "utf-8")
+        print(f"Synchronized {CLI_DOCS_FILE.name}")
+    else:
+        print(f"Warning: Could not find {CLI_DOCS_FILE}", file=sys.stderr)
 
 
 def sync_variables_docs() -> None:
@@ -100,8 +121,10 @@ def sync_config_docs() -> None:
 
 def main() -> None:
     sync_commands_docs()
+    sync_cli_docs()
     sync_config_docs()
     sync_variables_docs()
+    subprocess.run(["prettier", "--write", str(DOCS_MD_DIR)], check=True)
     print("Successfully finished documentation synchronization!")
 
 
@@ -110,11 +133,13 @@ __all__ = [
     "TYPE_DISPLAY_NAMES",
     "format_command_value",
     "format_type_hint",
+    "generate_cli_flags_table",
     "generate_command_tables",
     "generate_config_ref_table",
     "generate_variables_table",
     "is_compiled_config",
     "main",
+    "sync_cli_docs",
     "sync_commands_docs",
     "sync_config_docs",
     "sync_variables_docs",

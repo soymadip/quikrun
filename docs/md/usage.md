@@ -29,6 +29,9 @@ quikrun hello.c        # compiles with gcc, then runs the binary
 ## CLI Flags
 
 You can override configuration settings on the fly using CLI flags (these take the highest precedence over configuration files). This reference is generated from the CLI parser:
+
+<!-- DYNAMIC_CLI_FLAGS_START -->
+
 | Flag                                                  | Description                                                                                   |
 | :---------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
 | `-h`, `--help`                                        | show this help message and exit                                                               |
@@ -46,6 +49,8 @@ You can override configuration settings on the fly using CLI flags (these take t
 | `--keep-build-artifacts`, `--no-keep-build-artifacts` | Whether to retain temporary or compiled binaries after execution completes.                   |
 | `--cache-dir <path>`                                  | Custom directory used for cache and compiled build artifacts.                                 |
 | `--auto-exit <auto-exit>`                             | Controls automatic process exit behavior. (Choices: `always, never, on_success`)              |
+
+<!-- DYNAMIC_CLI_FLAGS_END -->
 
 Example:
 

@@ -55,6 +55,34 @@ def generate_config_ref_table() -> str:
     return table_md
 
 
+def generate_cli_flags_table() -> str:
+    """Build the CLI flags table from the argument parser definitions."""
+    from quikrun.cli import create_cli_parser
+
+    table_md = "| Flag | Description |\n| :--- | :--- |\n"
+
+    for action in create_cli_parser()._actions:
+        if not action.option_strings:
+            continue
+
+        flags = []
+        for option in action.option_strings:
+            flag = option
+            if action.nargs != 0:
+                metavar = action.metavar or action.dest.replace("_", "-")
+                flag = f"{flag} <{metavar}>"
+            flags.append(f"`{flag}`")
+
+        description = action.help or "—"
+        if action.choices:
+            choices = ", ".join(str(choice) for choice in action.choices)
+            description = f"{description} (Choices: `{choices}`)"
+
+        table_md += f"| {', '.join(flags)} | {description} |\n"
+
+    return table_md
+
+
 def generate_command_tables(commands: dict[str, Any] | None = None) -> tuple[str, str]:
     """Generates markdown tables for interpreted and compiled commands."""
 
