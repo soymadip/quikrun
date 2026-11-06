@@ -92,12 +92,12 @@ commitizen:
   post_bump_hooks:
     - git push origin $(git branch --show-current) --follow-tags
   pre_bump_hooks:
-    - uv run src/scripts/sync_docs
+    - uv run python -m src.scripts.sync_docs
     - mise run format
     - bash src/cz/bumper.sh
     - uv sync
   tag_format: v$version
   template: src/cz/changelog.j2
   update_changelog_on_bump: false
-  version: 3.2.1
+  version: 3.3.0
   version_scheme: semver
