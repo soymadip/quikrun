@@ -21,9 +21,8 @@ type ExitCode = int
 
 def quick_run(
     file_path: str | Path,
-    run_args: list[str] | None = None,
+    file_args: list[str] | None = None,
     extra_config: Config | None = None,
-    dry_run: bool = False,  # TODO
 ) -> ExitCode:
     """
     Quickly Run a file
@@ -35,8 +34,8 @@ def quick_run(
     cwd = Path.cwd()
     file_path = Path(file_path).resolve().relative_to(cwd)
 
-    if not run_args:
-        run_args = []
+    if not file_args:
+        file_args = []
 
     # ------------- Validate Input --------------
 
@@ -77,6 +76,7 @@ def quick_run(
     # Commands
     compile_cmd: str | NA = ""
     run_cmd: str | NA = ""
+    display_cmd: str | NA = ""
 
     # Output Dir, Path
     out_dir = Path(config.cache_dir)
@@ -95,7 +95,7 @@ def quick_run(
         "out_file": out_file,
         "platform": config.platform,
         "shell": config.shell,
-        "run_args": run_args,
+        "run_args": file_args,
     }
 
     # ----------- Construct Commands --------------
@@ -108,6 +108,7 @@ def quick_run(
     # Found shebang in file
     if file["file_shebang"]:
         run_cmd = f"{file['file_shebang']} {file['file_path']}"
+        display_cmd = run_cmd
 
     # Else use extension
     elif file["file_ext"]:

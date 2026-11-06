@@ -2,6 +2,7 @@
 __pycache__/
 .ruff_cache/
 *.py[oc]
+*.spec
 demo
 build/
 dist/

@@ -12,7 +12,7 @@ from typing import Any, TypedDict, cast
 from ..config.types import UNQUOTED_VARS, CmdCommand, CmdVars
 from .logger import log
 
-""" 
+"""
 # sentinel Types
 INVALID_KEY = sentinel("INVALID_KEY")
 INVALID_DATA_TYPE = sentinel("INVALID_DATA_TYPE")
@@ -51,7 +51,7 @@ class RunResult(TypedDict):
 
 def scroll_to_top():
     """Scroll up the terminal by 1 line"""
-    print("\033[1;1H\033[2J")
+    print("\n" * shutil.get_terminal_size().lines, "\033[1;1H\033[2J")
 
 
 def get_shebang(file_path: Path) -> str:
