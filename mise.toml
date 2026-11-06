@@ -7,6 +7,7 @@ ruff = "latest"
 uv = "latest"
 
 [env]
+'_'.path = { path = '.venv/bin' }
 CZ_CONFIG = 'src/cz/cz.yaml'
 UV_LINK_MODE = 'copy'
 
