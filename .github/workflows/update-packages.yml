@@ -12,6 +12,7 @@ on:
     paths:
       - "PKGBUILD"
       - "pyproject.toml"
+      - "src/debian/**"
       - ".github/workflows/update-packages.yml"
 
   workflow_dispatch:
@@ -20,6 +21,14 @@ on:
         description: "Version to publish (e.g., 1.4.0)"
         required: false
         type: string
+      target:
+        description: "Package target for manual runs"
+        required: false
+        type: choice
+        options:
+          - all
+          - ubuntu
+        default: all
 
 concurrency:
   group: update-dist-packages
@@ -42,6 +51,7 @@ jobs:
       version: ${{ steps.resolve-meta.outputs.version }}
       is_manual: ${{ steps.resolve-meta.outputs.is_manual }}
       pkgname: ${{ steps.resolve-meta.outputs.pkgname }}
+      launchpad_ppa: ${{ steps.resolve-launchpad.outputs.ppa }}
 
     steps:
       - name: Checkout repository
@@ -85,6 +95,12 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           echo "is_manual=$IS_MANUAL" >> "$GITHUB_OUTPUT"
 
+      - name: Resolve Launchpad PPA
+        id: resolve-launchpad
+        env:
+          LAUNCHPAD_PPA: ${{ vars.LAUNCHPAD_PPA || secrets.LAUNCHPAD_PPA }}
+        run: printf 'ppa=%s\n' "${LAUNCHPAD_PPA#ppa:}" >> "$GITHUB_OUTPUT"
+
   update-pypi:
     needs: get-info
     if: needs.get-info.outputs.is_manual == 'false'
@@ -114,7 +130,8 @@ jobs:
     if: |
       always() && 
       needs.get-info.result == 'success' && 
-      (needs.update-pypi.result == 'success' || needs.update-pypi.result == 'skipped')
+      (needs.update-pypi.result == 'success' || needs.update-pypi.result == 'skipped') &&
+      !(github.event_name == 'workflow_dispatch' && inputs.target == 'ubuntu')
     environment:
       name: aur
       url: "https://aur.archlinux.org/packages/${{ github.event.repository.name }}"
@@ -224,7 +241,7 @@ jobs:
 
       - name: Publish to AUR
         if: env.SKIP_UPDATE == 'false'
-        uses: KSXGitHub/github-actions-deploy-aur@v4.2.0
+        uses: KSXGitHub/github-actiods-deploy-aur@v4.2.0
         with:
           pkgname: ${{ env.PKGNAME }}
           pkgbuild: ./PKGBUILD
@@ -261,8 +278,61 @@ jobs:
           max-versions-to-keep: 4
           token: ${{ secrets.WINGET_TOKEN }}
 
+  update-ubuntu:
+    needs: get-info
+    if: needs.get-info.outputs.launchpad_ppa != '' && (needs.get-info.outputs.is_manual == 'false' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:26.04
+    steps:
+      - name: Checkout release source
+        uses: actions/checkout@v7
+        with:
+          ref: v${{ needs.get-info.outputs.version }}
+          fetch-depth: 0
+
+      - name: Install Ubuntu packaging tools
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            build-essential debhelper devscripts dh-python dput \
+            pybuild-plugin-pyproject python3-all python3-installer \
+            python3-setuptools python3-wheel
+
+      - name: Stage Debian packaging and update changelog
+        env:
+          VERSION: ${{ needs.get-info.outputs.version }}
+          DEBFULLNAME: ${{ vars.DEBFULLNAME || 'Soymadip' }}
+          DEBEMAIL: ${{ vars.DEBEMAIL || 'soumadip@zohomail.in' }}
+        run: |
+          cp -a src/debian debian
+          CURRENT_VERSION=$(dpkg-parsechangelog -SVersion)
+          if [ "$CURRENT_VERSION" != "$VERSION" ]; then
+            dch --newversion "$VERSION" --distribution resolute --force-distribution \
+              "New upstream release $VERSION."
+          fi
+
+      - name: Import Launchpad signing key
+        id: import-gpg
+        uses: crazy-max/ghaction-import-gpg@v7
+        with:
+          gpg_private_key: ${{ secrets.LAUNCHPAD_GPG_PRIVATE_KEY }}
+          passphrase: ${{ secrets.LAUNCHPAD_GPG_PASSPHRASE }}
+
+      - name: Build signed Ubuntu source package
+        env:
+          VERSION: ${{ needs.get-info.outputs.version }}
+          SIGNING_KEY: ${{ steps.import-gpg.outputs.fingerprint }}
+        run: dpkg-buildpackage -S -sa --sign-key="$SIGNING_KEY"
+
+      - name: Upload source package to Launchpad PPA
+        env:
+          LAUNCHPAD_PPA: ${{ needs.get-info.outputs.launchpad_ppa }}
+          VERSION: ${{ needs.get-info.outputs.version }}
+        run: dput "ppa:$LAUNCHPAD_PPA" "../quikrun_${VERSION}_source.changes"
+
   build-summary:
-    needs: [get-info, update-pypi, update-aur, update-winget]
+    needs: [get-info, update-pypi, update-aur, update-winget, update-ubuntu]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -271,6 +341,7 @@ jobs:
           PYPI_STATUS="${{ needs.update-pypi.result }}"
           AUR_STATUS="${{ needs.update-aur.result }}"
           WINGET_STATUS="${{ needs.update-winget.result }}"
+          UBUNTU_STATUS="${{ needs.update-ubuntu.result }}"
           WINGET_PR_URL="${{ needs.update-winget.outputs.pr-url }}"
           PKGNAME="${{ needs.get-info.outputs.pkgname }}"
           VERSION="${{ needs.get-info.outputs.version }}"
@@ -299,6 +370,7 @@ jobs:
           fi
 
           echo "| **WinGet** (Windows Package) | $(format_status "$WINGET_STATUS") | $WINGET_LINK |" >> $GITHUB_STEP_SUMMARY
+          echo "| **Ubuntu PPA** | $(format_status "$UBUNTU_STATUS") | Launchpad PPA |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version Released:** \`$VERSION\`" >> $GITHUB_STEP_SUMMARY
           echo "**Package Name:** \`$PKGNAME\`" >> $GITHUB_STEP_SUMMARY

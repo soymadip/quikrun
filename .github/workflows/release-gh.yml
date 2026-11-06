@@ -101,6 +101,7 @@ jobs:
         run: |
           mise run build
           mv dist/quikrun dist/quikrun-linux-amd64
+          chmod +x dist/quikrun-linux-amd64
 
       - name: Upload Linux and python dists
         uses: actions/upload-artifact@v7
@@ -148,6 +149,9 @@ jobs:
         with:
           name: python-dists
           path: dist/
+
+      - name: Ensure Linux executable permissions
+        run: chmod +x dist/quikrun-linux-amd64
 
       - name: Download Windows Exe
         uses: actions/download-artifact@v8
