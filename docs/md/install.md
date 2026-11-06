@@ -10,10 +10,10 @@ Install {{meta.project.title }} With your distro's package Manager.
 
 ### Arch Linux (MyRepo Repo)
 
-You can add MyRepo Repository to Your system & Install quikrun with pacman directly.   
+You can add MyRepo Repository to Your system & Install quikrun with pacman directly.
 
-- Setup: Head to [this page](https://mydehq.github.io/my-repo)  
-- Then: `sudo pacman -Syu {{meta.project.title}}`  
+- Setup: Head to [this page](https://mydehq.github.io/my-repo)
+- Then: `sudo pacman -Syu {{meta.project.title}}`
 
 ### Arch Linux (AUR)
 
