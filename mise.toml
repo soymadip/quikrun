@@ -1,6 +1,5 @@
 [tools]
 bun = "latest"
-ccache = "latest"
 "npm:prettier" = "latest"
 "pipx:commitizen" = "latest"
 ruff = "latest"
@@ -31,7 +30,7 @@ run = [{ task = "lint" }, { task = "format" }]
 
 [tasks.build]
 description = "Build standalone executable"
-run = "uv run nuitka --onefile --assume-yes-for-downloads --python-flag=-m --output-filename=quikrun --output-dir=dist quikrun"
+run = "uv run pyinstaller --onefile --noconfirm --name quikrun --paths . quikrun/__main__.py"
 
 [tasks.tests]
 description = "Run test suite"
