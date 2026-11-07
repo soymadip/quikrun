@@ -85,8 +85,10 @@ def test_cli_passes_extra_config_flags() -> None:
 
         assert exc.value.code == 0
         mock_quick_run.assert_called_once()
-        target_path, extra_args = mock_quick_run.call_args[0]
-        extra_config = mock_quick_run.call_args[1].get("extra_config")
+        call_kwargs = mock_quick_run.call_args.kwargs
+        target_path = call_kwargs["file_path"]
+        extra_args = call_kwargs["file_args"]
+        extra_config = call_kwargs["extra_config"]
 
         assert target_path == Path("test.py")
         assert extra_args == ["--", "--arg1", "val1"]
@@ -177,7 +179,7 @@ def test_cli_without_flags_passes_none_extra_config() -> None:
 
         assert exc.value.code == 0
         mock_quick_run.assert_called_once_with(
-            Path("main.py"),
-            None,
+            file_path=Path("main.py"),
+            file_args=[],
             extra_config=None,
         )
