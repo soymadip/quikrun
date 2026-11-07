@@ -296,6 +296,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             build-essential debhelper devscripts dh-python dput \
+            distro-info-data libdistro-info-perl \
             pybuild-plugin-pyproject python3-all python3-installer \
             python3-setuptools python3-wheel
 
